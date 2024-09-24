@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:senecard/main.dart';
 import 'package:senecard/pages/senecard.dart';
 
 void main() {
