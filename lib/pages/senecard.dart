@@ -20,10 +20,11 @@ class _SenecartState extends State<Senecard> {
         useMaterial3: true,
       ),
       home: Scaffold(
-        body: Container(
-          child: screenWidget,
+        body:Container(
+            color: Colors.white,
+            child: screenWidget,
+          ),
         ),
-      ),
     );
   }
 }
