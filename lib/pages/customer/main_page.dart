@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/elements/topbar/sidemenu.dart';
-import 'package:senecard/elements/topbar/topbar.dart';
+import 'package:senecard/elements/shared/sidemenu.dart';
+import 'package:senecard/elements/shared/topbar.dart';
 import 'package:senecard/pages/customer/offers_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -29,12 +29,18 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const TopBar(
-        leading: SideMenuButton(),
+      appBar: TopBar(
+        icon: const Icon(Icons.menu),
+        title: "Hey User",
+        message: "Good Time of the day!",
         trailing: [
           IconButton(
-            onPressed: null,
-            icon: Icon(Icons.qr_code),
+            onPressed:(){},
+            icon: const Icon(Icons.qr_code),
+            color: Colors.white,
+            style: const ButtonStyle(
+                backgroundColor:
+                    WidgetStatePropertyAll(Color.fromARGB(255, 255, 122, 40))),
           ),
         ],
       ),

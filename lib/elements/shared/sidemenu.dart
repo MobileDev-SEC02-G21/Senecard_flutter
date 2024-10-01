@@ -1,19 +1,5 @@
 import 'package:flutter/material.dart';
 
-class SideMenuButton extends StatelessWidget {
-  const SideMenuButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: () {
-        Scaffold.of(context).openDrawer();
-      },
-      child: const Text(""),
-    );
-  }
-}
-
 class SideMenuDrawer extends StatelessWidget {
   final List<MenuItem> menuItems;
   const SideMenuDrawer({super.key, required this.menuItems});
@@ -35,7 +21,9 @@ class SideMenuDrawer extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: onTap,
-                  icon: const Icon(Icons.arrow_back_ios_new_sharp,),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_sharp,
+                  ),
                 ),
                 const Center(
                   child: Text(
