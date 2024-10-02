@@ -5,6 +5,7 @@ class Purchase {
   final String date;                // Fecha de la compra
   final bool eligible;              // Indica si la compra es elegible
   final double? rating;             // Calificación de la compra (puede ser nulo)
+  final String purchase;            // Descripción de la compra (nuevo campo)
 
   Purchase({
     required this.id,
@@ -13,6 +14,7 @@ class Purchase {
     required this.date,
     required this.eligible,
     this.rating,                    // Este campo puede ser nulo
+    required this.purchase,         // Descripción de la compra (nuevo campo)
   });
 
   // Crear una instancia de Purchase desde un documento de Firestore
@@ -24,6 +26,7 @@ class Purchase {
       date: json['date'],
       eligible: json['eligible'],
       rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null, // Permitir nulos
+      purchase: json['purchase'],  // Descripción de la compra
     );
   }
 
@@ -34,6 +37,7 @@ class Purchase {
       'uniandesMemberId': uniandesMemberId,
       'date': date,
       'eligible': eligible,
+      'purchase': purchase,         // Descripción de la compra
       if (rating != null) 'rating': rating, // Solo agregar si no es nulo
     };
   }

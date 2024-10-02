@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Importa Provider
+import 'package:senecard/view_models/owner_page_vm.dart'; // Importa el ViewModel
 import 'package:senecard/views/elements/shared/sidemenu.dart';
 import 'package:senecard/views/elements/shared/topbar.dart';
 
@@ -20,7 +22,17 @@ class _OwnerPageState extends State<OwnerPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Llama a `fetchCustomersScannedToday` en el ViewModel con el `storeId` adecuado.
+    final String storeId = 'yourStoreId';  // Reemplaza `yourStoreId` con el ID de la tienda correspondiente
+    Provider.of<OwnerPageViewModel>(context, listen: false).fetchCustomersScannedToday(storeId);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context); // Accede al ViewModel
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TopBar(
@@ -88,14 +100,14 @@ class _OwnerPageState extends State<OwnerPage> {
                     ),
                   ),
                 ),
-                // Texto superpuesto sobre el semicírculo
-                const Positioned(
+                // Mostrar el número de clientes escaneados desde el ViewModel
+                Positioned(
                   top: 25,
                   child: Column(
                     children: [
                       Text(
-                        '30',
-                        style: TextStyle(
+                        '${ownerPageViewModel.customersScannedToday}',  // Mostrar el número de clientes escaneados
+                        style: const TextStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
