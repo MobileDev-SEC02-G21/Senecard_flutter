@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/elements/customer/searchbar/searchbar.dart';
+import 'package:senecard/elements/customer/verticalList/advertisementElement.dart';
+import 'package:senecard/elements/customer/verticalList/storeElement.dart';
 import 'package:senecard/elements/shared/sidemenu.dart';
 import 'package:senecard/elements/shared/topbar.dart';
 import 'package:senecard/pages/customer/offers_page.dart';
@@ -25,6 +28,23 @@ class _MainPageState extends State<MainPage> {
     "Stationary",
     "Bakery"
   ];
+
+  List<StoreElement> stores = [
+    const StoreElement(storeName: "Prueba 1", rating: 5),
+    const StoreElement(storeName: "Prueba 2", rating: 3),
+    const StoreElement(storeName: "Prueba 3", rating: 2),
+    const StoreElement(storeName: "Prueba 4", rating: 1),
+    const StoreElement(storeName: "Prueba 5", rating: 4),
+  ];
+
+  List<AdvertisementElement> advertisementes = [
+    const AdvertisementElement(image: "https://media.istockphoto.com/id/1270770086/photo/commercial-buildings-view-from-low-angle.jpg?s=612x612&w=0&k=20&c=auL9cSRdLJjujIhq7anW0wZi_j-1EzFpv6OhvSBMQQY="),
+    const AdvertisementElement(image: "https://media.istockphoto.com/id/1270770086/photo/commercial-buildings-view-from-low-angle.jpg?s=612x612&w=0&k=20&c=auL9cSRdLJjujIhq7anW0wZi_j-1EzFpv6OhvSBMQQY="),
+    const AdvertisementElement(image: "https://media.istockphoto.com/id/1270770086/photo/commercial-buildings-view-from-low-angle.jpg?s=612x612&w=0&k=20&c=auL9cSRdLJjujIhq7anW0wZi_j-1EzFpv6OhvSBMQQY="),
+    const AdvertisementElement(image: "https://media.istockphoto.com/id/1270770086/photo/commercial-buildings-view-from-low-angle.jpg?s=612x612&w=0&k=20&c=auL9cSRdLJjujIhq7anW0wZi_j-1EzFpv6OhvSBMQQY="),
+    const AdvertisementElement(image: "https://media.istockphoto.com/id/1270770086/photo/commercial-buildings-view-from-low-angle.jpg?s=612x612&w=0&k=20&c=auL9cSRdLJjujIhq7anW0wZi_j-1EzFpv6OhvSBMQQY="),   
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +55,7 @@ class _MainPageState extends State<MainPage> {
         message: "Good Time of the day!",
         trailing: [
           IconButton(
-            onPressed:(){},
+            onPressed: () {},
             icon: const Icon(Icons.qr_code),
             color: Colors.white,
             style: const ButtonStyle(
@@ -52,7 +72,19 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            OffersPage(categories: categories),
+            const SizedBox(
+            height: 20,
+          ),
+            const SearchBarCustom(),
+            const SizedBox(
+              height: 10,
+            ),
+            Expanded(
+              child: OffersPage(
+                stores: stores,
+                advertisementes: advertisementes,
+              ),
+            ),
           ],
         ),
       ),
