@@ -9,8 +9,6 @@ import 'package:senecard/views/pages/Owner/qr_response_page.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
 import 'package:senecard/views/pages/Owner/owner_page.dart';
 
-import 'Owner/edit_business.dart';
-
 class Senecard extends StatefulWidget {
   const Senecard({super.key});
   @override

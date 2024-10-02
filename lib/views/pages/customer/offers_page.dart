@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:senecard/views/elements/customer/horizontaltextcustom.dart';
 import 'package:senecard/views/elements/customer/searchbar/searchbar.dart';
 
-import '../../elements/customer/searchbar/searchbar.dart';
 
 class OffersPage extends StatefulWidget {
   final List<String> categories;
