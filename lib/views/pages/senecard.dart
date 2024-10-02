@@ -20,7 +20,8 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const QrScanPage();
+    Widget screenWidget = const MainPage();
+
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
@@ -36,3 +37,4 @@ class _SenecartState extends State<Senecard> {
     );
   }
 }
+
