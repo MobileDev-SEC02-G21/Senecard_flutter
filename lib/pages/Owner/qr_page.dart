@@ -5,10 +5,10 @@ class QrScanPage extends StatefulWidget {
   const QrScanPage({super.key});
 
   @override
-  _QrScanPageState createState() => _QrScanPageState();
+  QrScanPageState createState() => QrScanPageState();
 }
 
-class _QrScanPageState extends State<QrScanPage> {
+class QrScanPageState extends State<QrScanPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   String? qrCodeResult;
