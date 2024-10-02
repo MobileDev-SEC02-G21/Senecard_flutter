@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/elements/shared/sidemenu.dart';
-import 'package:senecard/elements/shared/topbar.dart';
+import 'package:senecard/views/elements/shared/sidemenu.dart';
+import 'package:senecard/views/elements/shared/topbar.dart';
 
 class OwnerPage extends StatefulWidget {
   const OwnerPage({super.key});
