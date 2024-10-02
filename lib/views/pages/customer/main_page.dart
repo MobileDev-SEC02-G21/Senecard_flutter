@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/elements/customer/searchbar/searchbar.dart';
-import 'package:senecard/elements/customer/verticalList/advertisementElement.dart';
-import 'package:senecard/elements/customer/verticalList/storeElement.dart';
-import 'package:senecard/elements/shared/sidemenu.dart';
-import 'package:senecard/elements/shared/topbar.dart';
-import 'package:senecard/pages/customer/offers_page.dart';
+import 'package:senecard/views/elements/customer/searchbar/searchbar.dart';
+import 'package:senecard/views/elements/customer/verticalList/advertisementElement.dart';
+import 'package:senecard/views/elements/customer/verticalList/storeElement.dart';
+import 'package:senecard/views/elements/shared/sidemenu.dart';
+import 'package:senecard/views/elements/shared/topbar.dart';
+import 'package:senecard/views/pages/customer/offers_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

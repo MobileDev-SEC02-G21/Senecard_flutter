@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/elements/customer/horizontaltextcustom.dart';
-import 'package:senecard/elements/customer/verticalList/advertisementElement.dart';
-import 'package:senecard/elements/customer/verticalList/storeElement.dart';
-import 'package:senecard/elements/customer/verticalList/verticallist.dart';
+import 'package:senecard/views/elements/customer/horizontaltextcustom.dart';
+import 'package:senecard/views/elements/customer/verticalList/advertisementElement.dart';
+import 'package:senecard/views/elements/customer/verticalList/storeElement.dart';
+import 'package:senecard/views/elements/customer/verticalList/verticallist.dart';
 
 class OffersPage extends StatefulWidget {
   final List<StoreElement> stores;
