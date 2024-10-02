@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senecard/views/elements/customer/horizontaltextcustom.dart';
+import 'package:senecard/views/elements/customer/searchbar/searchbar.dart';
 import 'package:senecard/views/elements/customer/verticalList/advertisementElement.dart';
 import 'package:senecard/views/elements/customer/verticalList/storeElement.dart';
 import 'package:senecard/views/elements/customer/verticalList/verticallist.dart';
