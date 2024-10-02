@@ -36,6 +36,7 @@ class _OwnerPageState extends State<OwnerPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TopBar(
+        backHome: (){},
         icon: const Icon(Icons.menu),
         title: "Welcome Back",
         message: "Let's Check Your Progress",
