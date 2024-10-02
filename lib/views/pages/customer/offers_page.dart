@@ -50,3 +50,4 @@ class _OffersPageState extends State<OffersPage> {
     );
   }
 }
+
