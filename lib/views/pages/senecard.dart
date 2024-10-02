@@ -9,8 +9,6 @@ import 'package:senecard/views/pages/Owner/qr_response_page.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
 import 'package:senecard/views/pages/Owner/owner_page.dart';
 
-import 'Owner/edit_business.dart';
-
 class Senecard extends StatefulWidget {
   const Senecard({super.key});
   @override
@@ -22,7 +20,7 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const EditProfilePage();
+    Widget screenWidget = const MainPage();
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
@@ -38,3 +36,4 @@ class _SenecartState extends State<Senecard> {
     );
   }
 }
+
