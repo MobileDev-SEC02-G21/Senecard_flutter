@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "409006645102",
+    "project_id": "senecard-aafad",
+    "storage_bucket": "senecard-aafad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409006645102:android:7f844d13d304d5a7f56b7f",
+        "android_client_info": {
+          "package_name": "com.example.senecard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHO47ccnnycXSZUiH-9juRQ61A6s1ycDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409006645102:android:1f98a234c14d9721f56b7f",
+        "android_client_info": {
+          "package_name": "com.mobiles.senecard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHO47ccnnycXSZUiH-9juRQ61A6s1ycDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
