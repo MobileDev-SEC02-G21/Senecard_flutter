@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'loginpages/introLogin.dart';
 import 'package:senecard/views/pages/Owner/advertisement_list.dart';
 import 'package:senecard/views/pages/Owner/business_info.dart';
 import 'package:senecard/views/pages/Owner/create_advertisement.dart';
@@ -8,6 +9,7 @@ import 'package:senecard/views/pages/Owner/qr_page.dart';
 import 'package:senecard/views/pages/Owner/qr_response_page.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
 import 'package:senecard/views/pages/Owner/owner_page.dart';
+
 
 class Senecard extends StatefulWidget {
   const Senecard({super.key});
@@ -20,8 +22,7 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const MainPage();
-
+    Widget screenWidget = const IntroScreen();
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
