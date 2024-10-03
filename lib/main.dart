@@ -5,16 +5,23 @@ import 'package:senecard/views/pages/senecard.dart';
 import 'package:senecard/view_models/owner_page_vm.dart'; // Importa el ViewModel
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized(); // Ensures everything is set up before Firebase initializes
+
+  try {
+    await Firebase.initializeApp(); // Initialize Firebase and handle potential errors
+  } catch (e) {
+    // Handle errors if Firebase fails to initialize
+    print('Firebase initialization error: $e');
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => OwnerPageViewModel()),
-        // Puedes agregar más ViewModels aquí si es necesario
+        // Add other ViewModels or Providers here if necessary
       ],
       child: const Senecard(),
     ),
   );
 }
+
