@@ -33,7 +33,6 @@ dependencies:
   image_picker: ^0.8.4+8
   camera: ^0.10.0+1
   qr_code_scanner: ^1.0.0
-  image_picker: ^0.8.5+3
   qr_flutter: ^4.1.0
   cloud_firestore: ^5.4.4
   firebase_core: ^3.6.0
