@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:senecard/view_models/customer/qr_page_viewmodel.dart';
 
-
 class QrPage extends StatelessWidget {
   const QrPage({super.key});
 
@@ -13,6 +12,7 @@ class QrPage extends StatelessWidget {
       create: (_) => QrPageViewModel(),
       child: Consumer<QrPageViewModel>(
         builder: (context, viewModel, child) {
+          viewModel.logQrRenderTime();
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

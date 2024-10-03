@@ -50,4 +50,13 @@ class FirestoreService {
     return _firestore.collection('advertisements').doc(adId).delete();
   }
 
+  Future<void> logQrRenderTime(String userId, DateTime startTime, DateTime endTime, int renderTime) {
+    return _firestore.collection('qr_render_times').add({
+      'userId': userId,
+      'startTime': startTime,
+      'endTime': endTime,
+      'renderTime': renderTime,
+    });
+  }
+
 }
