@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:senecard/services/FireStoreService.dart';
 
 class QrPageViewModel extends ChangeNotifier {
-  String _userId = "https://www.youtube.com/watch?v=xvFZjo5Pg0";
+  String _userId = "https://www.youtube.com/watch?v=xvFZjo5PgG0";
   final FirestoreService _firestoreService = FirestoreService();
 
   String get userId => _userId;
