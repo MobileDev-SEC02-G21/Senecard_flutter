@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/pages/customer/main_page.dart';
+import 'loginpages/introLogin.dart';
+
 
 class Senecard extends StatefulWidget {
   const Senecard({super.key});
@@ -12,7 +13,7 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const MainPage();
+    Widget screenWidget = const IntroScreen();
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
