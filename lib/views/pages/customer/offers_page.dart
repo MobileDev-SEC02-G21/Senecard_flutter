@@ -13,6 +13,7 @@ class OffersPage extends StatelessWidget {
       create: (_) => OffersPageViewModel(),
       child: Consumer<OffersPageViewModel>(
         builder: (context, viewModel, child) {
+          print('Building OffersPage. Store count: ${viewModel.stores.length}');
           return SingleChildScrollView(
             child: Column(
               children: [
@@ -21,20 +22,28 @@ class OffersPage extends StatelessWidget {
                   buttonText: "See All",
                   icon: Icons.arrow_forward_ios_rounded,
                 ),
-                StoreList(
-                  displayItems: viewModel.stores,
-                  shorter: true,
-                ),
+                viewModel.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : viewModel.stores.isEmpty
+                        ? const Center(child: Text('No stores available'))
+                        : StoreList(
+                            key: ValueKey(viewModel.stores.length),
+                            displayItems: viewModel.stores,
+                            shorter: true,
+                          ),
                 const SizedBox(height: 10),
                 const HorizontalTextCustom(
                   title: "Advertisements",
                   buttonText: "See All",
                   icon: Icons.arrow_forward_ios_rounded,
                 ),
-                StoreList(
-                  displayItems: viewModel.advertisements,
-                  shorter: true,
-                ),
+                viewModel.advertisements.isEmpty
+                    ? const Center(child: Text('No advertisements available'))
+                    : StoreList(
+                        key: ValueKey(viewModel.advertisements.length),
+                        displayItems: viewModel.advertisements,
+                        shorter: true,
+                      ),
                 const SizedBox(height: 20),
               ],
             ),

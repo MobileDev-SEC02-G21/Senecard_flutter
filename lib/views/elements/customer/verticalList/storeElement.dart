@@ -4,7 +4,7 @@ import 'dart:async'; // Para usar Timer
 class StoreElement extends StatefulWidget {
   final String image;
   final String storeName;
-  final double rating;
+  final double ? rating;
   final TimeOfDay opened;
   final TimeOfDay closed;
 
@@ -57,6 +57,8 @@ class _StoreElementState extends State<StoreElement> {
     super.dispose();
   }
 
+  double get effectiveRating => widget.rating ?? 0.0;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -94,7 +96,7 @@ class _StoreElementState extends State<StoreElement> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      widget.rating.toString(),
+                      effectiveRating.toString(),
                       style: TextStyle(
                         color: isOpen ? Colors.black : Colors.grey,
                       ),

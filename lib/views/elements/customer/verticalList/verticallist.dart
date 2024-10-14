@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // Para poder usar Timer
+import 'dart:async';
 
 class StoreList extends StatefulWidget {
   final List<Widget> displayItems;
   final bool shorter;
-  const StoreList(
-      {super.key, required this.displayItems, this.shorter = false});
+  const StoreList({super.key, required this.displayItems, this.shorter = false});
 
   @override
-  State<StatefulWidget> createState() {
-    return _StoreListState();
-  }
+  State<StatefulWidget> createState() => _StoreListState();
 }
 
 class _StoreListState extends State<StoreList> {
@@ -20,15 +17,29 @@ class _StoreListState extends State<StoreList> {
   @override
   void initState() {
     super.initState();
-    var listLenght =
-        widget.displayItems.length > 3 ? 3 : widget.displayItems.length;
-    displayItems = widget.shorter
-        ? widget.displayItems.take(listLenght).toList()
-        : widget.displayItems;
-
+    print('StoreList initState called');
+    _updateDisplayItems();
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      setState(() {});
+      setState(() {
+        print('StoreList periodic setState called');
+        _updateDisplayItems();
+      });
     });
+  }
+
+  @override
+  void didUpdateWidget(StoreList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('StoreList didUpdateWidget called');
+    if (oldWidget.displayItems != widget.displayItems) {
+      _updateDisplayItems();
+    }
+  }
+
+  void _updateDisplayItems() {
+    int listLength = widget.shorter && widget.displayItems.length > 3 ? 3 : widget.displayItems.length;
+    displayItems = widget.displayItems.take(listLength).toList();
+    print('Updated displayItems. Length: ${displayItems.length}');
   }
 
   @override
@@ -39,12 +50,15 @@ class _StoreListState extends State<StoreList> {
 
   @override
   Widget build(BuildContext context) {
+    print('StoreList build called. DisplayItems length: ${displayItems.length}');
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 10),
       child: Column(
-        children: displayItems,
+        children: displayItems.map((widget) {
+          print('Rendering widget in StoreList: ${widget.runtimeType}');
+          return widget;
+        }).toList(),
       ),
-      
     );
   }
 }

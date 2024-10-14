@@ -9,14 +9,20 @@ class FirestoreService {
   // Fetch stores
   Stream<List<Store>> getStores() {
     return _firestore.collection('stores').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Store.fromFirestore(doc.data(), doc.id)).toList();
+      print('Firestore snapshot received. Document count: ${snapshot.docs.length}');
+      return snapshot.docs.map((doc) {
+        print('Store data: ${doc.data()}');
+        return Store.fromFirestore(doc.data(), doc.id);
+      }).toList();
     });
   }
 
   // Fetch advertisements (unchanged)
   Stream<List<Advertisement>> getAdvertisements() {
     return _firestore.collection('advertisements').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Advertisement.fromFirestore(doc.data(), doc.id)).toList();
+      return snapshot.docs
+          .map((doc) => Advertisement.fromFirestore(doc.data(), doc.id))
+          .toList();
     });
   }
 
@@ -27,7 +33,10 @@ class FirestoreService {
 
   // Update a store
   Future<void> updateStore(Store store) {
-    return _firestore.collection('stores').doc(store.id).update(store.toFirestore());
+    return _firestore
+        .collection('stores')
+        .doc(store.id)
+        .update(store.toFirestore());
   }
 
   // Delete a store
@@ -42,7 +51,10 @@ class FirestoreService {
 
   // Update an advertisement
   Future<void> updateAdvertisement(Advertisement ad) {
-    return _firestore.collection('advertisements').doc(ad.id).update(ad.toFirestore());
+    return _firestore
+        .collection('advertisements')
+        .doc(ad.id)
+        .update(ad.toFirestore());
   }
 
   // Delete an advertisement
@@ -50,7 +62,8 @@ class FirestoreService {
     return _firestore.collection('advertisements').doc(adId).delete();
   }
 
-  Future<void> logQrRenderTime(String userId, DateTime startTime, DateTime endTime, int renderTime) {
+  Future<void> logQrRenderTime(
+      String userId, DateTime startTime, DateTime endTime, int renderTime) {
     return _firestore.collection('qr_render_times').add({
       'userId': userId,
       'startTime': startTime,
@@ -58,5 +71,4 @@ class FirestoreService {
       'renderTime': renderTime,
     });
   }
-
 }
