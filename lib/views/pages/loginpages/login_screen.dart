@@ -1,5 +1,6 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:senecard/services/FirebaseAuthService.dart';
 
 import '../../elements/login/components/app_text_form_field.dart';
 import '../../elements/login/utils/helpers/navigation_helper.dart';
@@ -12,8 +13,6 @@ import '../../elements/login/values/app_regex.dart';
 import '../../elements/login/values/app_routes.dart';
 import '../../elements/login/values/app_strings.dart';
 
-
-
 import 'package:senecard/views/pages/loginpages/Principallogin_screen.dart';
 import 'package:senecard/views/pages/loginpages/choose_screen.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
@@ -24,6 +23,7 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
 void _navigateToSigninSignupPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
@@ -37,14 +37,17 @@ void _navigateToRegisterSelectionPage(BuildContext context) {
     MaterialPageRoute(builder: (context) => RegisterSelectionPage()),
   );
 }
+
 void _navigateToMainPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => MainPage()),
   );
 }
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService(); // Initialize FirebaseAuthService
   final ValueNotifier<bool> passwordNotifier = ValueNotifier(true);
   final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
   late final TextEditingController emailController;
@@ -84,6 +87,36 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _signInUser(BuildContext context) async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final email = emailController.text;
+      final password = passwordController.text;
+
+      // Attempt to sign in using Firebase Auth
+      final user = await _firebaseAuthService.signInWithEmailAndPassword(email, password);
+
+      if (user != null) {
+        // Check if user exists in Firestore
+        final uid = user.uid;
+        final DocumentSnapshot userDoc = await _firebaseAuthService.getUserData(uid);
+
+        if (userDoc.exists) {
+          // User exists in Firestore
+          _navigateToMainPage(context);
+          SnackbarHelper.showSnackBar("Logged In Successfully");
+          emailController.clear();
+          passwordController.clear();
+        } else {
+          // User does not exist in Firestore
+          SnackbarHelper.showSnackBar("User not found in Firestore.");
+        }
+      } else {
+        // Failed to sign in
+        SnackbarHelper.showSnackBar("Login Failed. Please check your credentials.");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,7 +131,6 @@ class _LoginPageState extends State<LoginPage> {
                   icon: const Icon(Icons.arrow_back, color: Colors.orange, size: 30),
                   onPressed: () {
                     _navigateToSigninSignupPage(context);
-                    // Agregue la lógica de retroceso aquí
                   },
                 ),
               ),
@@ -211,14 +243,7 @@ class _LoginPageState extends State<LoginPage> {
                       return ElevatedButton(
                         onPressed: isValid
                             ? () {
-                          _navigateToMainPage(context);
-                            // Navegar a el menu principal
-
-                          SnackbarHelper.showSnackBar(
-                            "Logged In",
-                          );
-                          emailController.clear();
-                          passwordController.clear();
+                          _signInUser(context); // Call the sign-in function
                         }
                             : null,
                         style: ElevatedButton.styleFrom(
@@ -253,7 +278,6 @@ class _LoginPageState extends State<LoginPage> {
               TextButton(
                 onPressed: () {
                   _navigateToRegisterSelectionPage(context);
-                  // Navegar a el menu de sign UP
                 },
                 child: const Text(
                   "Sign up",
