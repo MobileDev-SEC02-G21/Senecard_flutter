@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:senecard/views/pages/Owner/owner_page.dart';
 
 import '../views/pages/Owner/business_info.dart';
 import '../views/pages/customer/main_page.dart';
@@ -106,7 +107,7 @@ class FirebaseAuthService {
         } else if (role == 'businessOwner') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+            MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV')),
           );
         }
 
