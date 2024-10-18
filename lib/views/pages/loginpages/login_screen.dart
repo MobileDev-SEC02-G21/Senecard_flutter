@@ -92,26 +92,16 @@ class _LoginPageState extends State<LoginPage> {
       final email = emailController.text;
       final password = passwordController.text;
 
-      // Attempt to sign in using Firebase Auth
-      final user = await _firebaseAuthService.signInWithEmailAndPassword(email, password);
+      // Intentar iniciar sesión utilizando Firebase Auth
+      final user = await _firebaseAuthService.signInWithEmailAndPassword(email, password, context);
 
       if (user != null) {
-        // Check if user exists in Firestore
-        final uid = user.uid;
-        final DocumentSnapshot userDoc = await _firebaseAuthService.getUserData(uid);
-
-        if (userDoc.exists) {
-          // User exists in Firestore
-          _navigateToMainPage(context);
-          SnackbarHelper.showSnackBar("Logged In Successfully");
-          emailController.clear();
-          passwordController.clear();
-        } else {
-          // User does not exist in Firestore
-          SnackbarHelper.showSnackBar("User not found in Firestore.");
-        }
+        // Si se autentica correctamente, la navegación será gestionada por FirebaseAuthService
+        SnackbarHelper.showSnackBar("Logged In Successfully");
+        emailController.clear();
+        passwordController.clear();
       } else {
-        // Failed to sign in
+        // Si el inicio de sesión falla
         SnackbarHelper.showSnackBar("Login Failed. Please check your credentials.");
       }
     }
