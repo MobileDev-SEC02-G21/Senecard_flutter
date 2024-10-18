@@ -3,7 +3,8 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
-    id "com.google.gms.google-services" // Agregar el plugin de Google Services
+    // Uncomment to apply Google Services if using Firebase
+    // id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -35,11 +36,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.senecard"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = flutter.minSdkVersion
+        // Updated minSdkVersion to 23 as required by firebase_auth
+        minSdkVersion 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
@@ -47,8 +46,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
         }
     }
@@ -58,11 +55,3 @@ flutter {
     source = "../.."
 }
 
-// Agregar las dependencias necesarias para Firebase
-dependencies {
-    implementation platform('com.google.firebase:firebase-bom:latest_version') // Firebase BOM (actualiza con la última versión)
-    implementation 'com.google.firebase:firebase-analytics'  // Dependencia para Firebase Analytics
-}
-
-// Aplica el plugin de Google Services
-apply plugin: 'com.google.gms.google-services'

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/services/FirebaseAuthService.dart'; // Import your FirebaseAuthService
 import '../../elements/login/components/app_text_form_field.dart';
 
 import '../../elements/login/utils/helpers/snackbar_helper.dart';
 
 import '../../elements/login/values/app_constants.dart';
 import '../../elements/login/values/app_regex.dart';
-import '../../elements/login/values/app_routes.dart';
 import '../../elements/login/values/app_strings.dart';
-
 
 import 'package:senecard/views/pages/loginpages/choose_screen.dart';
 import 'package:senecard/views/pages/loginpages/registerownerStore_screen.dart';
-
 
 class RegisterownerPage extends StatefulWidget {
   const RegisterownerPage({super.key});
@@ -19,6 +17,7 @@ class RegisterownerPage extends StatefulWidget {
   @override
   State<RegisterownerPage> createState() => _RegisterownerPageState();
 }
+
 void _navigateToRegisterSelectionPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
@@ -32,8 +31,10 @@ void _navigateToRegisterownerStorePage(BuildContext context) {
     MaterialPageRoute(builder: (context) => RegisterownerStorePage()),
   );
 }
+
 class _RegisterownerPageState extends State<RegisterownerPage> {
   final _formKey = GlobalKey<FormState>();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService(); // Initialize FirebaseAuthService
   late final TextEditingController nameController;
   late final TextEditingController emailController;
   late final TextEditingController phoneController;
@@ -88,6 +89,37 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
     super.dispose();
   }
 
+  Future<void> _registerUser() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final name = nameController.text;
+      final email = emailController.text;
+      final phone = phoneController.text;
+      final password = passwordController.text;
+
+      // Register the user with the role "businessOwner"
+      final user = await _firebaseAuthService.registerWithEmailAndPassword(
+        email,
+        password,
+        name,
+        phone,
+        "businessOwner", // Assign the role of businessOwner
+      );
+
+      if (user != null) {
+        // Navigate to the next page on successful registration
+        _navigateToRegisterownerStorePage(context);
+        SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
+        nameController.clear();
+        emailController.clear();
+        phoneController.clear();
+        passwordController.clear();
+        confirmPasswordController.clear();
+      } else {
+        SnackbarHelper.showSnackBar('Registration failed. Please try again.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,15 +130,15 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
             children: [
               IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.orange),
-                onPressed: (){
+                onPressed: () {
                   _navigateToRegisterSelectionPage(context);
-                }
+                },
               ),
             ],
           ),
           SizedBox(height: 20),
           Text(
-            'Bussiness Owner',
+            'Business Owner',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -283,20 +315,11 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isValid
-                            ? () {
-                          _navigateToRegisterownerStorePage(context);
-                          SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
-                          nameController.clear();
-                          emailController.clear();
-                          phoneController.clear();
-                          passwordController.clear();
-                          confirmPasswordController.clear();
-                        }
+                            ? _registerUser // Call the registration method here
                             : null,
                         child: Text('NEXT'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-
                           padding: EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),

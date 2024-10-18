@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/services/FirebaseAuthService.dart'; // Import FirebaseAuthService
 import '../../elements/login/components/app_text_form_field.dart';
 
 import '../../elements/login/values/app_routes.dart';
@@ -16,12 +17,14 @@ class RegisterPage extends StatefulWidget {
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
+
 void _navigateToRegisterSelectionPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => RegisterSelectionPage()),
   );
 }
+
 void _navigateToMainPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
@@ -31,6 +34,7 @@ void _navigateToMainPage(BuildContext context) {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService(); // Initialize FirebaseAuthService
   late final TextEditingController nameController;
   late final TextEditingController emailController;
   late final TextEditingController phoneController;
@@ -85,6 +89,37 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> _registerUser() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final name = nameController.text;
+      final email = emailController.text;
+      final phone = phoneController.text;
+      final password = passwordController.text;
+
+      // Call FirebaseAuthService to register the user with the role "uniandesMember"
+      final user = await _firebaseAuthService.registerWithEmailAndPassword(
+        email,
+        password,
+        name,
+        phone,
+        "uniandesMember",
+      );
+
+      if (user != null) {
+        // Navigate to the main page on successful registration
+        _navigateToMainPage(context);
+        SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
+        nameController.clear();
+        emailController.clear();
+        phoneController.clear();
+        passwordController.clear();
+        confirmPasswordController.clear();
+      } else {
+        SnackbarHelper.showSnackBar('Registration failed. Please try again.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,10 +129,10 @@ class _RegisterPageState extends State<RegisterPage> {
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.orange),
-                onPressed: () {
-                  _navigateToRegisterSelectionPage(context);
-                }
+                  icon: Icon(Icons.arrow_back, color: Colors.orange),
+                  onPressed: () {
+                    _navigateToRegisterSelectionPage(context);
+                  }
               ),
             ],
           ),
@@ -280,20 +315,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isValid
-                            ? () {
-                          _navigateToMainPage(context);
-                          SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
-                          nameController.clear();
-                          emailController.clear();
-                          phoneController.clear();
-                          passwordController.clear();
-                          confirmPasswordController.clear();
-                        }
+                            ? _registerUser // Call the registration method here
                             : null,
                         child: Text('REGISTER'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-
                           padding: EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
