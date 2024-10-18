@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:senecard/models/store.dart';
 import 'package:senecard/models/advertisement.dart';
+import 'package:senecard/models/purchase.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -25,6 +26,19 @@ class FirestoreService {
           .toList();
     });
   }
+
+  // Método para obtener anuncios filtrados por storeId
+  Stream<List<Advertisement>> getAdvertisementsByStore(String storeId) {
+    return _firestore.collection('advertisements')
+        .where('storeId', isEqualTo: storeId) // Filtra por el storeId
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Advertisement.fromFirestore(doc.data(), doc.id))
+          .toList();
+    });
+  }
+
 
   // Add a new store
   Future<void> addStore(Store store) {
@@ -70,5 +84,72 @@ class FirestoreService {
       'endTime': endTime,
       'renderTime': renderTime,
     });
+  }
+
+  // NEW: Get loyaltyCardIds associated with a specific store
+  Future<List<String>> getLoyaltyCardIdsByStore(String storeId) async {
+    try {
+      final loyaltyCardsQuery = await _firestore
+          .collection('loyaltyCards')
+          .where('storeId', isEqualTo: storeId)
+          .get();
+
+      // Return the list of loyaltyCardIds
+      return loyaltyCardsQuery.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print('Error fetching loyalty cards for store: $e');
+      return [];
+    }
+  }
+
+  // NEW: Get the number of purchases made today by loyaltyCardId and date
+  Future<int> getPurchasesByLoyaltyCardIdsAndDate(List<String> loyaltyCardIds, String date) async {
+    try {
+      final purchasesQuery = await _firestore
+          .collection('purchases')
+          .where('loyaltyCardId', whereIn: loyaltyCardIds)
+          .where('date', isEqualTo: date)
+          .get();
+
+      // Return the count of purchases
+      return purchasesQuery.docs.length;
+    } catch (e) {
+      print('Error fetching purchases by loyaltyCardIds and date: $e');
+      return 0;
+    }
+  }
+
+  // NEW: Get store rating by storeId
+  Future<double> getStoreRating(String storeId) async {
+    try {
+      final storeDoc = await _firestore.collection('stores').doc(storeId).get();
+
+      if (storeDoc.exists) {
+        final store = Store.fromFirestore(storeDoc.data() as Map<String, dynamic>, storeDoc.id);
+        return store.rating;
+      } else {
+        return 0.0;  // If store doesn't exist or no rating, return 0
+      }
+    } catch (e) {
+      print('Error fetching store rating: $e');
+      return 0.0;
+    }
+  }
+
+  // NEW: Get active advertisements count by storeId
+  Future<int> getActiveAdvertisements(String storeId) async {
+    try {
+      final advertisementsQuery = await _firestore
+          .collection('advertisements')
+          .where('storeId', isEqualTo: storeId)
+          .where('available', isEqualTo: true)
+          .get();
+
+      // Return the count of active advertisements
+      return advertisementsQuery.docs.length;
+    } catch (e) {
+      print('Error fetching active advertisements: $e');
+      return 0;
+    }
   }
 }

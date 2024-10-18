@@ -1,43 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:senecard/view_models/owner/advertisement_viewmodel.dart';
+import 'create_advertisement.dart';
 
 class AdvertisementPage extends StatefulWidget {
-  const AdvertisementPage({super.key});
+  final String storeId;
+
+  const AdvertisementPage({super.key, required this.storeId});
 
   @override
   AdvertisementPageState createState() => AdvertisementPageState();
 }
 
 class AdvertisementPageState extends State<AdvertisementPage> {
-  List<Map<String, String>> advertisements = [
-    {
-      'title': '20% OFF ALL BURRITOS',
-      'image': 'assets/burrito.jpg',
-    },
-    {
-      'title': '2X1 DRINKS',
-      'image': 'assets/drinks.jpg',
-    },
-  ];
 
-  // Función para agregar un nuevo anuncio
-  void _addAdvertisement() {
-    setState(() {
-      advertisements.add({
-        'title': 'New Advertisement', // Puedes personalizar este valor
-        'image': 'assets/new_ad.jpg',  // Cambia a una imagen válida
-      });
-    });
+  void _removeAdvertisement(int index) {
+    final advertisementViewModel = Provider.of<AdvertisementViewModel>(context, listen: false);
+    advertisementViewModel.removeAdvertisement(index);
   }
 
-  // Función para eliminar un anuncio
-  void _removeAdvertisement(int index) {
-    setState(() {
-      advertisements.removeAt(index);
-    });
+  @override
+  void initState() {
+    super.initState();
+
+    final advertisementViewModel = Provider.of<AdvertisementViewModel>(context, listen: false);
+    advertisementViewModel.fetchAdvertisements(widget.storeId);
   }
 
   @override
   Widget build(BuildContext context) {
+    final advertisementViewModel = Provider.of<AdvertisementViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -46,7 +39,7 @@ class AdvertisementPageState extends State<AdvertisementPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Regresar a la página anterior
+            Navigator.pop(context);
           },
         ),
         title: const Text(
@@ -59,7 +52,15 @@ class AdvertisementPageState extends State<AdvertisementPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
-            onPressed: _addAdvertisement, // Lógica para añadir un anuncio
+            onPressed: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateAdvertisementPage(storeId: widget.storeId),
+                ),
+              );
+            },
             color: Colors.black,
           ),
         ],
@@ -78,17 +79,18 @@ class AdvertisementPageState extends State<AdvertisementPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Lista de anuncios
+
             Expanded(
               child: ListView.builder(
-                itemCount: advertisements.length,
+                itemCount: advertisementViewModel.advertisements.length,
                 itemBuilder: (context, index) {
+                  final advertisement = advertisementViewModel.advertisements[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: AdvertisementCard(
-                      title: advertisements[index]['title']!,
-                      imagePath: advertisements[index]['image']!,
-                      onDelete: () => _removeAdvertisement(index), // Eliminar anuncio
+                      title: advertisement.title,
+                      imagePath: advertisement.image,
+                      onDelete: () => _removeAdvertisement(index),
                     ),
                   );
                 },
@@ -122,20 +124,20 @@ class AdvertisementCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Imagen del anuncio
+
           Container(
             width: 120,
             height: 100,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               image: DecorationImage(
-                image: AssetImage(imagePath),
-                fit: BoxFit.cover,
+                image: NetworkImage(imagePath),
+                fit: BoxFit.contain,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          // Texto del anuncio
+
           Expanded(
             child: Text(
               title,
@@ -146,7 +148,7 @@ class AdvertisementCard extends StatelessWidget {
               ),
             ),
           ),
-          // Botón de eliminación
+
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.white),
             onPressed: onDelete,

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Importa Provider
-import 'package:senecard/view_models/owner_page_vm.dart'; // Importa el ViewModel
+import 'package:provider/provider.dart'; 
+import 'package:senecard/view_models/owner/owner_page_vm.dart'; 
 import 'package:senecard/views/elements/shared/sidemenu.dart';
 import 'package:senecard/views/elements/shared/topbar.dart';
+import 'advertisement_list.dart'; 
+import 'qr_page.dart'; 
 
 class OwnerPage extends StatefulWidget {
-  const OwnerPage({super.key});
+  final String storeId; 
+
+  const OwnerPage({super.key, required this.storeId});
 
   @override
   State<OwnerPage> createState() {
@@ -24,26 +28,36 @@ class _OwnerPageState extends State<OwnerPage> {
   @override
   void initState() {
     super.initState();
-    // Llama a `fetchCustomersScannedToday` en el ViewModel con el `storeId` adecuado.
-    final String storeId = 'yourStoreId';  // Reemplaza `yourStoreId` con el ID de la tienda correspondiente
-    Provider.of<OwnerPageViewModel>(context, listen: false).fetchCustomersScannedToday(storeId);
+    
+    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context, listen: false);
+
+    
+    ownerPageViewModel.fetchCustomersScannedToday(widget.storeId); 
+    ownerPageViewModel.fetchStoreRating(widget.storeId); 
+    ownerPageViewModel.fetchActiveAdvertisements(widget.storeId); 
   }
 
   @override
   Widget build(BuildContext context) {
-    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context); // Accede al ViewModel
+    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context); 
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TopBar(
-        backHome: (){},
+        backHome: () {},
         icon: const Icon(Icons.menu),
         title: "Welcome Back",
         message: "Let's Check Your Progress",
         trailing: [
           IconButton(
             onPressed: () {
-              // Acción para el botón QR
+              
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => QrScanPage(storeId: widget.storeId), 
+                ),
+              );
             },
             icon: const Icon(Icons.qr_code),
             color: Colors.white,
@@ -62,7 +76,7 @@ class _OwnerPageState extends State<OwnerPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 50), // Aumenta considerablemente el espaciado
+            const SizedBox(height: 50), 
             const Text(
               'Welcome Back To Senecard!',
               style: TextStyle(
@@ -70,43 +84,43 @@ class _OwnerPageState extends State<OwnerPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 40), // Aumenta el espaciado entre elementos
+            const SizedBox(height: 40), 
             const Text(
               'You’ve had',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 20),
-            // Semicírculo con fondo blanco
+            
             Stack(
               alignment: Alignment.center,
               children: [
-                // Fondo blanco inferior
+                
                 Positioned(
-                  top: 100, // Colocado debajo del semicírculo
+                  top: 100, 
                   child: Container(
                     width: 200,
-                    height: 100, // Altura del fondo blanco
+                    height: 100, 
                     color: Colors.white,
                   ),
                 ),
-                // Semicírculo negro
+                
                 Container(
                   width: 200,
-                  height: 100, // Altura del semicírculo
+                  height: 100, 
                   decoration: const BoxDecoration(
                     color: Colors.black87,
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(100), // Semicírculo
+                      top: Radius.circular(100), 
                     ),
                   ),
                 ),
-                // Mostrar el número de clientes escaneados desde el ViewModel
+                
                 Positioned(
                   top: 25,
                   child: Column(
                     children: [
                       Text(
-                        '${ownerPageViewModel.customersScannedToday}',  // Mostrar el número de clientes escaneados
+                        '${ownerPageViewModel.customersScannedToday}',  
                         style: const TextStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
@@ -119,7 +133,7 @@ class _OwnerPageState extends State<OwnerPage> {
               ],
             ),
             const SizedBox(height: 20),
-            // Texto debajo del semicírculo pero arriba del fondo blanco
+            
             const Text(
               'Customers scanned today\nKeep up the good work!',
               textAlign: TextAlign.center,
@@ -128,39 +142,47 @@ class _OwnerPageState extends State<OwnerPage> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 60), // Espaciado considerable
+            const SizedBox(height: 60), 
             const Text(
               'Current Business average Rating',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            const SizedBox(height: 30), // Espaciado considerable
-            // Sección de estrellas
+            const SizedBox(height: 30), 
+            
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
                 return Icon(
-                  index < 4 ? Icons.star : Icons.star_half,
+                  index < ownerPageViewModel.storeRating.floor()
+                      ? Icons.star
+                      : (index < ownerPageViewModel.storeRating.ceil() ? Icons.star_half : Icons.star_border),
                   color: Colors.orange,
                   size: 32,
                 );
               }),
             ),
-            const SizedBox(height: 60), // Aumenta el espacio entre las estrellas y el botón
-            // Botón naranja
+            const SizedBox(height: 60), 
+            
             ElevatedButton(
               onPressed: () {
-                // Acción cuando se presiona el botón
+                
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdvertisementPage(storeId: widget.storeId), 
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange, // Color de fondo del botón
+                backgroundColor: Colors.orange, 
                 padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 children: [
-                  Text(
+                  const Text(
                     'YOU HAVE',
                     style: TextStyle(
                       fontSize: 18,
@@ -169,8 +191,8 @@ class _OwnerPageState extends State<OwnerPage> {
                     ),
                   ),
                   Text(
-                    '3 ADVERTISEMENTS ACTIVE',
-                    style: TextStyle(
+                    '${ownerPageViewModel.activeAdvertisements} ADVERTISEMENTS ACTIVE',
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Colors.white,
                     ),

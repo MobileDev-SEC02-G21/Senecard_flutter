@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
+import 'package:senecard/view_models/owner/advertisement_viewmodel.dart'; // Importa el ViewModel
 
 class CreateAdvertisementPage extends StatefulWidget {
-  const CreateAdvertisementPage({super.key});
+  final String storeId;  // Recibe el ID de la tienda
+
+  const CreateAdvertisementPage({super.key, required this.storeId});
 
   @override
   CreateAdvertisementPageState createState() => CreateAdvertisementPageState();
@@ -11,6 +15,7 @@ class CreateAdvertisementPage extends StatefulWidget {
 
 class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   File? _image;
+  final TextEditingController _descriptionController = TextEditingController(); // Controlador para la descripción
 
   // Función para obtener la imagen desde la galería
   Future<void> _pickImage() async {
@@ -21,6 +26,31 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
         _image = File(pickedFile.path); // Convertir la imagen seleccionada en un archivo
       });
     }
+  }
+
+  // Función para guardar el anuncio
+  void _saveAdvertisement() {
+    if (_image == null || _descriptionController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please provide both an image and a description.')),
+      );
+      return;
+    }
+
+    final advertisementViewModel = Provider.of<AdvertisementViewModel>(context, listen: false);
+
+    // Llamamos al ViewModel para crear el anuncio con la imagen y la descripción
+    advertisementViewModel.createAdvertisement(
+      storeId: widget.storeId,  // Pasamos el storeId desde el widget
+      description: _descriptionController.text,  // Descripción del anuncio
+      image: _image!,  // Imagen del anuncio
+    );
+
+    // Mostrar mensaje de éxito y regresar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Advertisement created successfully!')),
+    );
+    Navigator.pop(context); // Volver a la página anterior después de crear el anuncio
   }
 
   @override
@@ -96,8 +126,9 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                 color: const Color(0xFFF5F7FA),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: _descriptionController,  // Controlador para capturar la descripción
+                decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Enter description...',
                 ),
@@ -110,9 +141,7 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    // Acción al guardar
-                  },
+                  onPressed: _saveAdvertisement,  // Llamar a la función de guardar
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0), // Aumenta el padding
@@ -121,7 +150,6 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-
                   child: const Text(
                     'SAVE',
                     style: TextStyle(
@@ -133,7 +161,7 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Acción al cancelar
+                    Navigator.pop(context); // Acción al cancelar
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[300],
@@ -143,7 +171,6 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-
                   child: const Text(
                     'CANCEL',
                     style: TextStyle(

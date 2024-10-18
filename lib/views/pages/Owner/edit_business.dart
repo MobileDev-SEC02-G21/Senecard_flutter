@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  final String storeId; // Recibe el ID de la tienda
+
+  const EditProfilePage({super.key, required this.storeId}); // Modificar el constructor para recibir storeId
 
   @override
   EditProfilePageState createState() => EditProfilePageState();
 }
 
 class EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController nameController = TextEditingController(text: 'One Burrito');
-  final TextEditingController emailController = TextEditingController(text: 'hello@halallab.co');
-  final TextEditingController addressController = TextEditingController(text: 'Cra 3 #16-55');
-  final TextEditingController descriptionController = TextEditingController(text: 'I love fast food');
+  final TextEditingController nameController = TextEditingController(text: '');
+  final TextEditingController emailController = TextEditingController(text: '');
+  final TextEditingController addressController = TextEditingController(text: '');
+  final TextEditingController descriptionController = TextEditingController(text: '');
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +104,7 @@ class EditProfilePageState extends State<EditProfilePage> {
             ElevatedButton(
               onPressed: () {
                 // Acción al guardar los cambios
+                print('Store ID: ${widget.storeId}'); // Usar el storeId si es necesario
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
