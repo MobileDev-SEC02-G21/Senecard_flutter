@@ -46,16 +46,18 @@ class QrScanPageState extends State<QrScanPage> {
           // Llama a la función del ViewModel para obtener la información del QR, pasando el storeId y el userId (qrCodeResult)
           final qrInfo = await qrViewModel.getQrInfo(qrCodeResult!, widget.storeId);
 
-          // Redirecciona automáticamente a QRResponsePage con los datos obtenidos
+          // Redirecciona automáticamente a QRResponsePage con los datos obtenidos, el userId y el storeId
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => QRResponsePage(
                 customerName: qrInfo['name'],
-                cardsRedeemed: qrInfo['points'],
-                currentStamps: qrInfo['currentStamps'],
+                cardsRedeemed: qrInfo['cardsRedeemed'],
+                currentStamps: qrInfo['points'],
                 maxStamps: qrInfo['maxPoints'],
                 canRedeem: qrInfo['canRedeem'],
+                userId: qrCodeResult!,  // Pasamos el userId a la página de respuesta
+                storeId: widget.storeId,  // Pasamos el storeId a la página de respuesta
               ),
             ),
           );

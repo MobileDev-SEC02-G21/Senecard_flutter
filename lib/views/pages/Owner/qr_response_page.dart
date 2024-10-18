@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:senecard/views/pages/Owner/owner_page.dart';
+import '../../../view_models/owner/qr_viewmodel.dart';  // Importa OwnerPage
 
 class QRResponsePage extends StatelessWidget {
   final String customerName;  // Nombre del cliente
@@ -6,6 +9,8 @@ class QRResponsePage extends StatelessWidget {
   final int currentStamps;  // Sellos actuales
   final int maxStamps;  // Máximo de sellos posibles
   final bool canRedeem;  // Indica si se puede canjear la tarjeta
+  final String userId;  // Id del usuario
+  final String storeId;  // Id de la tienda
 
   const QRResponsePage({
     Key? key,
@@ -14,6 +19,8 @@ class QRResponsePage extends StatelessWidget {
     required this.currentStamps,
     required this.maxStamps,
     required this.canRedeem,
+    required this.userId,  // Añadimos el userId como parámetro requerido
+    required this.storeId,  // Añadimos storeId como parámetro requerido
   }) : super(key: key);
 
   @override
@@ -26,7 +33,12 @@ class QRResponsePage extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.grey),
           onPressed: () {
-            Navigator.pop(context);  // Acción para regresar a la página anterior
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OwnerPage(storeId: storeId), // Pasa el storeId a la OwnerPage
+              ),
+            );
           },
         ),
         title: const Text(
@@ -99,7 +111,8 @@ class QRResponsePage extends StatelessWidget {
               // Botón para hacer un sello (habilitado y naranja si canRedeem es false)
               ElevatedButton(
                 onPressed: currentStamps < maxStamps ? () {
-                  // Acción para hacer un sello
+                  final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
+                  qrViewModel.makeStamp(userId, storeId); // Llamar a la función en el ViewModel
                 } : null,  // Habilitado si currentStamps < maxStamps
                 style: ElevatedButton.styleFrom(
                   backgroundColor: canRedeem ? Colors.grey[300] : Colors.orange,  // Si canRedeem es false, color naranja
