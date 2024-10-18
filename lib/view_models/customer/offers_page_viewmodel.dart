@@ -39,6 +39,7 @@ class OffersPageViewModel extends ChangeNotifier {
   Future<void> fetchStores() async {
     try {
       final storeList = await _firestoreService.getStores().first;
+      storeList.sort((a, b) => (b.rating).compareTo(a.rating));
       print('Received store list. Count: ${storeList.length}');
       _stores = storeList.map((store) {
         print('Creating StoreElement for: ${store.name}');

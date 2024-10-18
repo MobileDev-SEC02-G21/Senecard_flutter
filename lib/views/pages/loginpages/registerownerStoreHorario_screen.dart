@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:senecard/views/pages/loginpages/registerownerStore_screen.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
+import 'package:senecard/views/pages/Owner/business_info.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class StoreSchedulePage extends StatefulWidget {
-  const StoreSchedulePage({super.key});
+  final String storeId; // Recibe el ID de la tienda
+
+  const StoreSchedulePage({super.key, required this.storeId});
 
   @override
   State<StoreSchedulePage> createState() => _StoreSchedulePageState();
@@ -16,12 +21,13 @@ void _navigateToRegisterownerStorePage(BuildContext context) {
   );
 }
 
-void _navigateToMainPage(BuildContext context) {
+void _navigateToBusinessInfoPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => MainPage()),
+    MaterialPageRoute(builder: (context) => BusinessInfoPage()),
   );
 }
+
 class _StoreSchedulePageState extends State<StoreSchedulePage> {
   final Map<String, TimeOfDay?> _openingTimes = {
     "Monday": TimeOfDay(hour: 0, minute: 0),
@@ -58,6 +64,33 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
     }
   }
 
+  Future<void> _saveSchedule() async {
+    Map<String, List<int>> schedule = {};
+
+    _openingTimes.forEach((day, openingTime) {
+      final closingTime = _closingTimes[day];
+      schedule[day.toLowerCase()] = [
+        openingTime!.hour,
+        closingTime!.hour,
+      ]; // Guarda el horario en formato [apertura, cierre]
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).update({
+        'schedule': schedule,
+      });
+      print('Horario actualizado');
+
+      // Navegar a BusinessInfoPage después de actualizar el horario
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+      );
+    } catch (e) {
+      print('Error al actualizar el horario: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +101,9 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
             children: [
               IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.orange),
-                onPressed: (){
+                onPressed: () {
                   _navigateToRegisterownerStorePage(context);
-                }
+                },
               ),
             ],
           ),
@@ -106,8 +139,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                _navigateToMainPage(context);
-                // Maneja la acción de registro
+                _saveSchedule(); // Guardar el horario
               },
               child: Text('REGISTER'),
               style: ElevatedButton.styleFrom(
@@ -132,7 +164,6 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       onPressed: () => _selectTime(context, day, isOpening),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.grey,
-
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
