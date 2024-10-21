@@ -107,7 +107,7 @@ class FirebaseAuthService {
         } else if (role == 'businessOwner') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV')),
+            MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
           );
         }
 

@@ -86,7 +86,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       // Navegar a BusinessInfoPage después de actualizar el horario
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => OwnerPage(storeId: widget.storeId)),
+        MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
       );
 
     } catch (e) {
