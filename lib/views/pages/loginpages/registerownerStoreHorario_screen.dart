@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senecard/views/pages/Owner/owner_page.dart';
 import 'package:senecard/views/pages/loginpages/registerownerStore_screen.dart';
-import 'package:senecard/views/pages/customer/main_page.dart';
-import 'package:senecard/views/pages/Owner/business_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
@@ -18,7 +16,7 @@ class StoreSchedulePage extends StatefulWidget {
 void _navigateToRegisterownerStorePage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => RegisterownerStorePage()),
+    MaterialPageRoute(builder: (context) => const RegisterownerStorePage()),
   );
 }
 
@@ -32,13 +30,13 @@ void _navigateToBusinessInfoPage(BuildContext context, String storeId) {
 
 class _StoreSchedulePageState extends State<StoreSchedulePage> {
   final Map<String, TimeOfDay?> _openingTimes = {
-    "Monday": TimeOfDay(hour: 0, minute: 0),
-    "Tuesday": TimeOfDay(hour: 0, minute: 0),
-    "Wednesday": TimeOfDay(hour: 0, minute: 0),
-    "Thursday": TimeOfDay(hour: 0, minute: 0),
-    "Friday": TimeOfDay(hour: 0, minute: 0),
-    "Saturday": TimeOfDay(hour: 0, minute: 0),
-    "Sunday": TimeOfDay(hour: 0, minute: 0),
+    "Monday": const TimeOfDay(hour: 0, minute: 0),
+    "Tuesday": const TimeOfDay(hour: 0, minute: 0),
+    "Wednesday": const TimeOfDay(hour: 0, minute: 0),
+    "Thursday": const TimeOfDay(hour: 0, minute: 0),
+    "Friday": const TimeOfDay(hour: 0, minute: 0),
+    "Saturday": const TimeOfDay(hour: 0, minute: 0),
+    "Sunday": const TimeOfDay(hour: 0, minute: 0),
   };
 
   late final Map<String, TimeOfDay?> _closingTimes;
@@ -86,7 +84,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       // Navegar a BusinessInfoPage después de actualizar el horario
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
+        MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
       );
 
     } catch (e) {
@@ -98,38 +96,38 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         children: [
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.orange),
+                icon: const Icon(Icons.arrow_back, color: Colors.orange),
                 onPressed: () {
                   _navigateToRegisterownerStorePage(context);
                 },
               ),
             ],
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'Store Owner',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Enter the schedule of the store',
             style: TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ..._openingTimes.keys.map((day) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(day.toUpperCase(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  Text(day.toUpperCase(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   _timeButton(context, day, true),
                   Text('-'),
                   _timeButton(context, day, false),
@@ -137,21 +135,21 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
               ),
             );
           }).toList(),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
                 _saveSchedule(); // Guardar el horario
               },
-              child: Text('REGISTER'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                padding: EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
+              child: const Text('REGISTER'),
             ),
           ),
         ],
@@ -170,11 +168,11 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       child: Text(
         timeString,
-        style: TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }
