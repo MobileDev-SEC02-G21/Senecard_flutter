@@ -20,7 +20,7 @@ class RegisterownerStorePage extends StatefulWidget {
 void _navigateToRegisterownerPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => RegisterownerPage()),
+    MaterialPageRoute(builder: (context) => const RegisterownerPage()),
   );
 }
 
@@ -39,7 +39,6 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
   XFile? _storeImage;
   final ImagePicker _picker = ImagePicker();
-  String? _storeId; // Almacenar el ID de la tienda
 
   @override
   void initState() {
@@ -98,37 +97,37 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         children: [
           Row(
             children: [
               IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.orange),
+                  icon: const Icon(Icons.arrow_back, color: Colors.orange),
                   onPressed: () {
                     _navigateToRegisterownerPage(context); // Regresar a la pantalla anterior
                   }),
             ],
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'Store Owner',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Enter the information of the store',
             style: TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('STORE NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const Text('STORE NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: nameStoreController,
                   labelText: 'Store Name',
@@ -138,9 +137,9 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
                     return value!.isEmpty ? 'Please enter store name' : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('STORE ADDRESS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('STORE ADDRESS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: addressController,
                   labelText: 'Store Address',
@@ -150,9 +149,9 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
                     return value!.isEmpty ? 'Please enter store address' : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('STORE CATEGORY', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('STORE CATEGORY', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: categoryController,
                   labelText: 'Store Category',
@@ -162,9 +161,9 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
                     return value!.isEmpty ? 'Please enter store category' : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('STORE IMAGE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('STORE IMAGE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 GestureDetector(
                   onTap: pickImage,
                   child: Container(
@@ -189,7 +188,7 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -198,14 +197,14 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
                         _registerStore(); // Registrar la tienda y redirigir a la pantalla de horarios
                       }
                     },
-                    child: Text('NEXT'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
+                    child: const Text('NEXT'),
                   ),
                 ),
               ],

@@ -102,12 +102,12 @@ class FirebaseAuthService {
         if (role == 'uniandesMember') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => MainPage()),
+            MaterialPageRoute(builder: (context) => const MainPage()),
           );
         } else if (role == 'businessOwner') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
+            MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
           );
         }
 
