@@ -4,7 +4,6 @@ import 'package:senecard/views/pages/Owner/advertisement_list.dart';
 import 'package:senecard/views/pages/Owner/business_info.dart';
 import 'package:senecard/views/pages/Owner/create_advertisement.dart';
 import 'package:senecard/views/pages/Owner/edit_business.dart';
-import 'package:senecard/views/pages/Owner/qr_declined_response.dart';
 import 'package:senecard/views/pages/Owner/qr_page.dart';
 import 'package:senecard/views/pages/Owner/qr_response_page.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
@@ -22,7 +21,7 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const IntroScreen();
+    Widget screenWidget = const OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV');
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(

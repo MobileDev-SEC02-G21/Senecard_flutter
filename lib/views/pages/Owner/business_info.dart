@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:senecard/view_models/owner/business_viewmodel.dart';
+import 'edit_business.dart';  // Importa la página EditBusinessPage
 
-class BusinessInfoPage extends StatelessWidget {
-  const BusinessInfoPage({super.key});
+class BusinessInfoPage extends StatefulWidget {
+  final String storeId; // Recibe el ID de la tienda
+
+  const BusinessInfoPage({super.key, required this.storeId});
+
+  @override
+  _BusinessInfoPageState createState() => _BusinessInfoPageState();
+}
+
+class _BusinessInfoPageState extends State<BusinessInfoPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Llamamos a la función del ViewModel para obtener los datos del negocio
+    final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context, listen: false);
+    businessInfoViewModel.fetchStoreData(widget.storeId);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -26,7 +46,13 @@ class BusinessInfoPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              // Acción para editar la información
+              // Navegar a la página de edición pasando el storeId
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfilePage(storeId: widget.storeId),
+                ),
+              );
             },
             child: const Text(
               'EDIT',
@@ -39,16 +65,14 @@ class BusinessInfoPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: businessInfoViewModel.isLoading
+          ? const Center(child: CircularProgressIndicator()) // Mostrar un indicador de carga
+          : Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            // Foto del negocio (puedes reemplazarlo con una imagen real)
-
-            const SizedBox(height: 20),
-            // Nombre del negocio
             Row(
               children: [
                 CircleAvatar(
@@ -61,21 +85,21 @@ class BusinessInfoPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 20), // Espaciado entre la imagen y el texto
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'One Burrito',
-                      style: TextStyle(
+                      businessInfoViewModel.storeName,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Text(
-                      'Best Burritos',
-                      style: TextStyle(
+                      businessInfoViewModel.category,
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
                       ),
@@ -84,7 +108,6 @@ class BusinessInfoPage extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 30),
             // Caja de información del negocio
             Container(
@@ -99,19 +122,19 @@ class BusinessInfoPage extends StatelessWidget {
                   _buildInfoRow(
                     icon: Icons.person,
                     label: 'FULL NAME',
-                    value: 'Andres Escobar',
+                    value: businessInfoViewModel.ownerName,
                   ),
                   const SizedBox(height: 15),
                   _buildInfoRow(
                     icon: Icons.email,
                     label: 'EMAIL',
-                    value: 'a.escobar@uniandes.edu.co',
+                    value: businessInfoViewModel.ownerEmail,
                   ),
                   const SizedBox(height: 15),
                   _buildInfoRow(
                     icon: Icons.location_on,
                     label: 'ADDRESS',
-                    value: '408-841-0926',
+                    value: businessInfoViewModel.storeAddress,
                   ),
                 ],
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/views/pages/Owner/owner_page.dart';
 import 'package:senecard/views/pages/loginpages/registerownerStore_screen.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
 import 'package:senecard/views/pages/Owner/business_info.dart';
@@ -21,12 +22,13 @@ void _navigateToRegisterownerStorePage(BuildContext context) {
   );
 }
 
-void _navigateToBusinessInfoPage(BuildContext context) {
+void _navigateToBusinessInfoPage(BuildContext context, String storeId) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+    MaterialPageRoute(builder: (context) => OwnerPage(storeId: storeId)),
   );
 }
+
 
 class _StoreSchedulePageState extends State<StoreSchedulePage> {
   final Map<String, TimeOfDay?> _openingTimes = {
@@ -84,8 +86,9 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       // Navegar a BusinessInfoPage después de actualizar el horario
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+        MaterialPageRoute(builder: (context) => OwnerPage(storeId: widget.storeId)),
       );
+
     } catch (e) {
       print('Error al actualizar el horario: $e');
     }
