@@ -52,6 +52,51 @@ class QrViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> redeemLoyaltyCard(String userId, String storeId) async {
+    try {
+      // Buscar la loyaltyCard que coincida con userId y storeId
+      QuerySnapshot loyaltyCardsSnapshot = await _firestore
+          .collection('loyaltyCards')
+          .where('uniandesMemberId', isEqualTo: userId)
+          .where('storeId', isEqualTo: storeId)
+          .where('current', isEqualTo: true) // Asegurarse de que sea la tarjeta actual
+          .limit(1)
+          .get();
+
+      if (loyaltyCardsSnapshot.docs.isEmpty) {
+        throw Exception("No loyalty card found for this user and store");
+      }
+
+      DocumentSnapshot loyaltyCard = loyaltyCardsSnapshot.docs.first;
+
+      // Cambiar la tarjeta actual a no actual (current: false)
+      await _firestore.collection('loyaltyCards').doc(loyaltyCard.id).update({
+        'current': false,
+      });
+
+      // Obtener datos relevantes de la tarjeta de lealtad actual
+      Map<String, dynamic> loyaltyCardData = loyaltyCard.data() as Map<String, dynamic>;
+      int maxPoints = loyaltyCardData['maxPoints'] ?? 10;
+      String uniandesMemberId = loyaltyCardData['uniandesMemberId'];
+
+      // Crear una nueva tarjeta de lealtad con los mismos atributos, pero reiniciando los puntos
+      await _firestore.collection('loyaltyCards').add({
+        'current': true,
+        'maxPoints': maxPoints,
+        'points': 0, // Puntos reiniciados
+        'storeId': storeId,
+        'uniandesMemberId': uniandesMemberId,
+      });
+
+      print("Loyalty card redeemed and new loyalty card created successfully.");
+      notifyListeners();
+    } catch (e) {
+      print("Error redeeming loyalty card: $e");
+      throw e;
+    }
+  }
+
+
   // Método para hacer un sello y agregar un punto a la loyaltyCard del usuario
   Future<void> makeStamp(String userId, String storeId) async {
     try {
@@ -80,11 +125,20 @@ class QrViewModel extends ChangeNotifier {
         'points': points,
       });
 
-      print("Stamp added successfully.");
+      // Crear un nuevo documento de compra en la colección 'purchases'
+      await _firestore.collection('purchases').add({
+        'date': DateTime.now().toIso8601String().split('T').first,  // Fecha actual
+        'isEligible': true,
+        'loyaltyCardId': loyaltyCard.id,  // ID de la tarjeta de lealtad
+        'rating': 5,  // Puedes ajustar esto según las necesidades
+      });
+
+      print("Stamp added and purchase recorded successfully.");
       notifyListeners();
     } catch (e) {
-      print("Error adding stamp: $e");
+      print("Error adding stamp and recording purchase: $e");
       throw e;
     }
   }
+
 }

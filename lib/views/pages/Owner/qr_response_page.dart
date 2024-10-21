@@ -110,9 +110,19 @@ class QRResponsePage extends StatelessWidget {
               const SizedBox(height: 30),
               // Botón para hacer un sello (habilitado y naranja si canRedeem es false)
               ElevatedButton(
-                onPressed: currentStamps < maxStamps ? () {
+                onPressed: currentStamps < maxStamps ? () async {
                   final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
-                  qrViewModel.makeStamp(userId, storeId); // Llamar a la función en el ViewModel
+
+                  // Llamar a la función en el ViewModel y esperar que termine
+                  await qrViewModel.makeStamp(userId, storeId);
+
+                  // Redirigir a la página de OwnerPage después de añadir el sello
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OwnerPage(storeId: storeId),
+                    ),
+                  );
                 } : null,  // Habilitado si currentStamps < maxStamps
                 style: ElevatedButton.styleFrom(
                   backgroundColor: canRedeem ? Colors.grey[300] : Colors.orange,  // Si canRedeem es false, color naranja
@@ -131,6 +141,7 @@ class QRResponsePage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
               // Texto sobre la posibilidad de canjear la tarjeta
               Text(
@@ -144,9 +155,20 @@ class QRResponsePage extends StatelessWidget {
               const SizedBox(height: 20),
               // Botón para canjear tarjeta de lealtad (habilitado cuando currentStamps == maxStamps)
               ElevatedButton(
-                onPressed: currentStamps >= maxStamps ? () {
-                  // Acción para canjear la tarjeta de lealtad
-                } : null,  // Habilitado cuando currentStamps == maxStamps
+                onPressed: currentStamps >= maxStamps ? () async {
+                  final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
+
+                  // Llamar a la función redeemLoyaltyCard en el ViewModel y esperar a que termine
+                  await qrViewModel.redeemLoyaltyCard(userId, storeId);
+
+                  // Redirigir a la página de OwnerPage después de canjear la tarjeta de lealtad
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OwnerPage(storeId: storeId),
+                    ),
+                  );
+                } : null,  // Habilitado solo cuando currentStamps == maxStamps
                 style: ElevatedButton.styleFrom(
                   backgroundColor: currentStamps >= maxStamps ? Colors.green : Colors.grey[300],  // Verde si puede canjear
                   padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),

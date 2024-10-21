@@ -68,6 +68,7 @@ class _OwnerPageState extends State<OwnerPage> {
         ],
       ),
       drawer: SideMenuDrawer(
+        storeId: widget.storeId,
         menuItems: menuItems,
       ),
       drawerScrimColor: const Color.fromARGB(255, 152, 168, 184),

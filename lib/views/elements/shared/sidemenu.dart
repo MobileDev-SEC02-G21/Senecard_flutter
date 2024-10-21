@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/views/pages/Owner/business_info.dart';  // Asegúrate de que la ruta sea correcta
+import 'package:senecard/views/pages/Owner/advertisement_list.dart';  // Asegúrate de que la ruta sea correcta
 
 class SideMenuDrawer extends StatelessWidget {
   final List<MenuItem> menuItems;
-  const SideMenuDrawer({super.key, required this.menuItems});
+  final String storeId; // Se agrega el storeId para pasarlo a las páginas necesarias
+
+  const SideMenuDrawer({super.key, required this.menuItems, this.storeId = ''});  // storeId se inicializa con un valor por defecto
+
   @override
   Widget build(BuildContext context) {
-    void onTap() {
-      Navigator.pop(context);
+    void onTap(String title) {
+      Navigator.pop(context);  // Cerrar el drawer
+
+      // Navegación según el título del menú
+      if (title == 'Profile' && storeId.isNotEmpty) {
+        // Navegar a BusinessInfoPage solo si storeId no está vacío
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BusinessInfoPage(storeId: storeId),  // Pasamos el storeId
+          ),
+        );
+      } else if (title == 'My Ads' && storeId.isNotEmpty) {
+        // Navegar a AdvertisementPage solo si storeId no está vacío
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdvertisementPage(storeId: storeId),  // Pasamos el storeId
+          ),
+        );
+      }
     }
 
     return Drawer(
@@ -20,7 +44,9 @@ class SideMenuDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  onPressed: onTap,
+                  onPressed: () {
+                    Navigator.pop(context);  // Cerrar el drawer
+                  },
                   icon: const Icon(
                     Icons.arrow_back_ios_new_sharp,
                   ),
@@ -39,26 +65,26 @@ class SideMenuDrawer extends StatelessWidget {
             ),
           ),
           ...menuItems.map((item) => ListTile(
-                title: Center(
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color.fromRGBO(158, 158, 158, 0.5),
-                            spreadRadius: 3,
-                            blurRadius: 8,
-                            offset: Offset(1, 3),
-                          )
-                        ]),
-                    child: Text(item.title),
-                  ),
-                ),
-                onTap: onTap,
-              ))
+            title: Center(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(158, 158, 158, 0.5),
+                        spreadRadius: 3,
+                        blurRadius: 8,
+                        offset: Offset(1, 3),
+                      )
+                    ]),
+                child: Text(item.title),
+              ),
+            ),
+            onTap: () => onTap(item.title),  // Pasamos el título al onTap
+          ))
         ],
       ),
     );

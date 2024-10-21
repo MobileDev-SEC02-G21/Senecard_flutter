@@ -21,7 +21,7 @@ class Senecard extends StatefulWidget {
 class _SenecartState extends State<Senecard> {
   @override
   Widget build(BuildContext context) {
-    Widget screenWidget = const QrScanPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV');
+    Widget screenWidget = const OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV');
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
