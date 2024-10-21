@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../views/pages/Owner/business_info.dart';
+import '../views/pages/Owner/owner_page.dart';
 import '../views/pages/customer/main_page.dart';
 
 class FirebaseAuthService {
@@ -106,7 +107,7 @@ class FirebaseAuthService {
         } else if (role == 'businessOwner') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+            MaterialPageRoute(builder: (context) => OwnerPage()),
           );
         }
 

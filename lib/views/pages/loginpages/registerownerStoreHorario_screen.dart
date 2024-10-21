@@ -4,6 +4,8 @@ import 'package:senecard/views/pages/customer/main_page.dart';
 import 'package:senecard/views/pages/Owner/business_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../Owner/owner_page.dart';
+
 
 class StoreSchedulePage extends StatefulWidget {
   final String storeId; // Recibe el ID de la tienda
@@ -81,10 +83,10 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       });
       print('Horario actualizado');
 
-      // Navegar a BusinessInfoPage después de actualizar el horario
+      // Navegar a OwnerPage después de actualizar el horario
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BusinessInfoPage()),
+        MaterialPageRoute(builder: (context) => OwnerPage()),
       );
     } catch (e) {
       print('Error al actualizar el horario: $e');
