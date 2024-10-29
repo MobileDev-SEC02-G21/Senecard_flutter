@@ -6,7 +6,8 @@ import 'package:senecard/view_models/owner/business_viewmodel.dart';
 import 'package:senecard/view_models/owner/qr_viewmodel.dart';
 import 'package:senecard/views/pages/senecard.dart'; // Importa la página principal de Senecard
 import 'package:senecard/view_models/owner/owner_page_vm.dart'; // Importa el ViewModel de Owner
-import 'package:senecard/view_models/owner/advertisement_viewmodel.dart'; // Importa el ViewModel de Advertisement
+import 'package:senecard/view_models/owner/advertisement_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa el ViewModel de Advertisement
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,7 @@ void main() async {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform
     );
+    await SharedPreferences.getInstance();
   } catch (e) {
     print('Firebase initialization error: $e');
   }
