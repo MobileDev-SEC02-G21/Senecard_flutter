@@ -14,6 +14,8 @@ class OffersPage extends StatelessWidget {
       child: Consumer<OffersPageViewModel>(
         builder: (context, viewModel, child) {
           print('Building OffersPage. Store count: ${viewModel.stores.length}');
+          print('Advertisement count: ${viewModel.advertisements.length}');
+          
           return SingleChildScrollView(
             child: Column(
               children: [

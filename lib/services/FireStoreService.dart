@@ -20,11 +20,40 @@ class FirestoreService {
 
   // Fetch advertisements (unchanged)
   Stream<List<Advertisement>> getAdvertisements() {
-    return _firestore.collection('advertisements').snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Advertisement.fromFirestore(doc.data(), doc.id))
-          .toList();
+    print('Starting advertisements query');
+    
+    // Primero, obtener todos los documentos sin filtro para debug
+    _firestore.collection('advertisements').get().then((snapshot) {
+      print('Total advertisements in collection (unfiltered): ${snapshot.docs.length}');
+      for (var doc in snapshot.docs) {
+        print('Advertisement document: ${doc.id}');
+        print('Advertisement data: ${doc.data()}');
+        print('Available value: ${doc.data()['available']}');
+        print('Available value type: ${doc.data()['available'].runtimeType}');
+      }
     });
+
+    // La query original con filtro
+    return _firestore
+        .collection('advertisements')
+        .where('available', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          print('Firestore filtered advertisements query executed.');
+          print('Filtered document count: ${snapshot.docs.length}');
+          
+          final advertisements = snapshot.docs.map((doc) {
+            print('Processing filtered advertisement:');
+            print('  ID: ${doc.id}');
+            print('  Data: ${doc.data()}');
+            print('  Available value: ${doc.data()['available']}');
+            
+            return Advertisement.fromFirestore(doc.data(), doc.id);
+          }).toList();
+          
+          print('Processed ${advertisements.length} available advertisements');
+          return advertisements;
+        });
   }
 
   // Método para obtener anuncios filtrados por storeId
