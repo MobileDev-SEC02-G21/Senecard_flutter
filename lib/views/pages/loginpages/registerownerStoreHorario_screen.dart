@@ -49,6 +49,85 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
     _closingTimes = Map.fromEntries(_openingTimes.entries.map((entry) => MapEntry(entry.key, entry.value)));
   }
 
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.orange), // Indicador de carga
+                const SizedBox(height: 20),
+                const Text(
+                  "Loading",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Please wait one moment while processing the information",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Función para mostrar el Dialog de error
+  void showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const SizedBox(height: 20),
+                const Text(
+                  "Error",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "El correo o la contraseña son incorrectos.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el popup de error
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _selectTime(BuildContext context, String day, bool isOpening) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -74,8 +153,10 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       schedule[day.toLowerCase()] = [
         openingTime!.hour,
         closingTime!.hour,
+
       ]; // Guarda el horario en formato [apertura, cierre]
     });
+    showLoadingDialog(context);
 
     try {
       await FirebaseFirestore.instance.collection('stores').doc(widget.storeId).update({

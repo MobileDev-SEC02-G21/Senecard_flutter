@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senecard/views/pages/loginpages/Principallogin_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -15,23 +16,28 @@ class _IntroScreenState extends State<IntroScreen> {
   final List<Map<String, String>> _pages = [
     {
       'title': 'Find nearby stores',
-      'description': 'Get all your loved foods in one once place, you just place the order we do the rest',
+      'description': 'Get all your loved foods in one place, you just place the order we do the rest',
+      'imageUrl': 'https://firebasestorage.googleapis.com/v0/b/senecard-aafad.appspot.com/o/stores_images%2FDise%C3%B1o%20sin%20t%C3%ADtulo.jpg?alt=media&token=4809b2b4-fb02-44b1-819f-39c3ad12549c', // URL de Firebase para la primera imagen
     },
     {
       'title': 'Get some special offers with our fidelity points!',
-      'description': 'Get all your loved foods in one once place, you just place the order we do the rest',
+      'description': 'Get all your loved foods in one place, you just place the order we do the rest',
+      'imageUrl': 'https://firebasestorage.googleapis.com/v0/b/senecard-aafad.appspot.com/o/stores_images%2FDise%C3%B1o%20sin%20t%C3%ADtulo.jpg?alt=media&token=4809b2b4-fb02-44b1-819f-39c3ad12549c', // URL de Firebase para la segunda imagen
     },
     {
       'title': 'A Senecard just for you!',
       'description': 'A special QR for you to redeem your discounts!',
+      'imageUrl': 'https://firebasestorage.googleapis.com/v0/b/senecard-aafad.appspot.com/o/stores_images%2FDise%C3%B1o%20sin%20t%C3%ADtulo.jpg?alt=media&token=4809b2b4-fb02-44b1-819f-39c3ad12549c', // URL de Firebase para la tercera imagen
     },
   ];
+
   void _navigateToSigninSignupPage() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => SigninSignupPage()),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,9 +58,11 @@ class _IntroScreenState extends State<IntroScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        height: 180,
-                        color: Colors.grey,
+                      Image.network(
+                        _pages[index]['imageUrl']!, // Carga la imagen desde la URL de Firebase
+                        height: 180, // Ajusta la altura de la imagen
+                        width: double.infinity, // Ajusta el ancho para ocupar todo el contenedor
+                        fit: BoxFit.cover, // Ajusta el modo de encuadre de la imagen
                       ),
                       const SizedBox(height: 40),
                       Text(
@@ -100,7 +108,6 @@ class _IntroScreenState extends State<IntroScreen> {
                       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
                     } else {
                       _navigateToSigninSignupPage();
-                      // Manejar acción para ir a la siguiente pantalla
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -115,8 +122,6 @@ class _IntroScreenState extends State<IntroScreen> {
                 TextButton(
                   onPressed: () {
                     _navigateToSigninSignupPage();
-
-                    // Manejar acción para omitir la introducción
                   },
                   child: const Text('Skip'),
                 ),

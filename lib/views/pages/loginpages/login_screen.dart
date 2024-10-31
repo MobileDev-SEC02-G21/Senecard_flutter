@@ -47,7 +47,7 @@ void _navigateToMainPage(BuildContext context) {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService(); // Initialize FirebaseAuthService
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
   final ValueNotifier<bool> passwordNotifier = ValueNotifier(true);
   final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
   late final TextEditingController emailController;
@@ -87,22 +87,114 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.orange), // Indicador de carga
+                const SizedBox(height: 20),
+                const Text(
+                  "Loading",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Please wait one moment while processing the information",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Función para mostrar el Dialog de error
+  void showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const SizedBox(height: 20),
+                const Text(
+                  "Error",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "El correo o la contraseña son incorrectos.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el popup de error
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _signInUser(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
       final email = emailController.text;
       final password = passwordController.text;
 
-      // Intentar iniciar sesión utilizando Firebase Auth
-      final user = await _firebaseAuthService.signInWithEmailAndPassword(email, password, context);
+      // Mostrar el popup de carga
+      showLoadingDialog(context);
 
-      if (user != null) {
-        // Si se autentica correctamente, la navegación será gestionada por FirebaseAuthService
-        SnackbarHelper.showSnackBar("Logged In Successfully");
-        emailController.clear();
-        passwordController.clear();
-      } else {
-        // Si el inicio de sesión falla
-        SnackbarHelper.showSnackBar("Login Failed. Please check your credentials.");
+      try {
+        // Intentar iniciar sesión utilizando Firebase Auth
+        final user = await _firebaseAuthService.signInWithEmailAndPassword(email, password, context);
+
+        if (user != null) {
+          SnackbarHelper.showSnackBar("Logged In Successfully");
+          emailController.clear();
+          passwordController.clear();
+        }
+
+        else {
+          // Si el inicio de sesión falla sin excepción específica
+          showErrorDialog(context);
+
+        }
+
+
+      } catch (e) {
+        // Cerrar el popup de carga si hay una excepción
+        Navigator.of(context).pop();
+
       }
     }
   }
@@ -210,7 +302,7 @@ class _LoginPageState extends State<LoginPage> {
                               ? "Please, Enter Password"
                               : AppRegex.passwordRegex.hasMatch(value)
                               ? null
-                              : "Invalid Password";
+                              : "La contraseña debe tener:\n- Una letra mayúscula\n- Una letra minúscula\n- Un número\n- Un carácter especial (@, #, !, %, *, ?, &, _)";
                         },
                       );
                     },

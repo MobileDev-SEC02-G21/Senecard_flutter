@@ -57,6 +57,129 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
     super.dispose();
   }
 
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.orange), // Indicador de carga
+                const SizedBox(height: 20),
+                const Text(
+                  "Loading",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Please wait one moment while processing the information",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  void showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const SizedBox(height: 20),
+                const Text(
+                  "Error",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  " Hace falta la imagen para continuar el registro.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el popup de error
+
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  // Función para mostrar el Dialog de error
+  void showErrorimageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const SizedBox(height: 20),
+                const Text(
+                  "Error",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  " Hace falta la imagen para continuar el registro.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el popup de error
+
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> pickImage() async {
     final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
@@ -66,17 +189,20 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
 
   Future<void> _registerStore() async {
     if (_storeImage == null) {
+      showErrorimageDialog(context);
       SnackbarHelper.showSnackBar('Please select an image for the store.');
       return;
     }
 
     try {
+
       User? currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null) {
+        showLoadingDialog(context);
         // Llamar al método para registrar la tienda
         DocumentReference storeRef = await _firebaseAuthService.registerStore(
-          storeName: nameStoreController.text,
+          name: nameStoreController.text,
           address: addressController.text,
           category: categoryController.text,
           storeImage: File(_storeImage!.path), // Convertir XFile a File
@@ -90,6 +216,7 @@ class _RegisterownerStorePageState extends State<RegisterownerStorePage> {
         _navigateToStoreSchedulePage(context, storeId);
       }
     } catch (e) {
+      showErrorDialog(context);
       SnackbarHelper.showSnackBar('Failed to register store: $e');
     }
   }
