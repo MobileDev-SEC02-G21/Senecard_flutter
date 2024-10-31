@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:senecard/services/connectivity_service.dart';
-import 'package:senecard/view_models/customer/offers_page_viewmodel.dart';
+import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 
 class HorizontalTextCustom extends StatelessWidget {
   final String title;
   final String buttonText;
   final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   const HorizontalTextCustom({
     super.key,
     required this.title,
     required this.buttonText,
     required this.icon,
+    this.onPressed,
+    this.isLoading = false,
   });
 
   void _showNoInternetToast(BuildContext context) {
@@ -45,44 +48,21 @@ class HorizontalTextCustom extends StatelessWidget {
     });
   }
 
-  void _handleButtonPress(BuildContext context, OffersPageViewModel viewModel) async {
-    // Verificar conexión a internet antes de intentar refrescar
-    if (!viewModel.isOnline) {
-      _showNoInternetToast(context);
-      return;
-    }
-
-    // Mostrar indicador de carga
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
-    try {
-      // Intentar refrescar los datos
-      await viewModel.refreshData();
-      // Cerrar el indicador de carga
-      if (context.mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      // Si hay un error, cerrar el indicador de carga y mostrar el mensaje de error
-      if (context.mounted) {
-        Navigator.of(context).pop();
-        _showNoInternetToast(context);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Consumer<OffersPageViewModel>(
+    return Consumer<MainPageViewmodel>(
       builder: (context, viewModel, child) {
+        void handlePress() {
+          if (!viewModel.isOnline) {
+            _showNoInternetToast(context);
+            return;
+          }
+
+          if (onPressed != null) {
+            onPressed!();
+          }
+        }
+
         return Padding(
           padding: const EdgeInsets.only(left: 25, right: 10),
           child: Row(
@@ -99,30 +79,26 @@ class HorizontalTextCustom extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: viewModel.isLoading 
-                      ? null 
-                      : () => _handleButtonPress(context, viewModel),
+                    onPressed: (isLoading || viewModel.isLoading) ? null : handlePress,
                     child: Text(
                       buttonText,
                       style: TextStyle(
                         fontSize: 16,
-                        color: viewModel.isLoading 
-                          ? Colors.grey 
-                          : const Color.fromARGB(255, 0, 0, 0),
+                        color: (isLoading || viewModel.isLoading)
+                            ? Colors.grey
+                            : const Color.fromARGB(255, 0, 0, 0),
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   IconButton(
-                    onPressed: viewModel.isLoading 
-                      ? null 
-                      : () => _handleButtonPress(context, viewModel),
+                    onPressed: (isLoading || viewModel.isLoading) ? null : handlePress,
                     icon: Icon(
                       icon,
                       size: 24,
-                      color: viewModel.isLoading 
-                        ? Colors.grey 
-                        : const Color.fromARGB(255, 0, 0, 0),
+                      color: (isLoading || viewModel.isLoading)
+                          ? Colors.grey
+                          : const Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
                 ],

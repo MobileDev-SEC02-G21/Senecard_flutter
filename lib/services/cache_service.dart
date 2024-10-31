@@ -9,7 +9,6 @@ class CacheService {
   static const String ADS_CACHE_KEY = 'cached_advertisements';
   static const String LAST_CACHE_TIME_KEY = 'last_cache_time';
   static const Duration CACHE_DURATION = Duration(hours: 1);
-  static const int CACHE_LIMIT = 3;
   
   static CacheService? _instance;
   final SharedPreferences _prefs;
@@ -29,51 +28,29 @@ class CacheService {
     }
   }
 
-  Future<bool> hasValidCache() async {
+  Future<void> cacheStores(List<Store> stores) async {
     try {
-      final lastCacheTime = _prefs.getString(LAST_CACHE_TIME_KEY);
-      if (lastCacheTime == null) return false;
-      
-      final lastUpdate = DateTime.parse(lastCacheTime);
-      return DateTime.now().difference(lastUpdate) < CACHE_DURATION;
-    } catch (e) {
-      print('Error checking cache validity: $e');
-      return false;
-    }
-  }
-
-  Future<bool> shouldUpdateCache() async {
-    try {
-      if (!await hasValidCache()) return true;
-      return await hasInternetConnection();
-    } catch (e) {
-      print('Error checking if cache should update: $e');
-      return true;
-    }
-  }
-
-  Future<void> cacheTopStores(List<Store> stores) async {
-    try {
-      final topStores = stores
-          .take(CACHE_LIMIT)
-          .map((store) => store.toFirestore())
-          .toList();
-      await _prefs.setString(STORES_CACHE_KEY, jsonEncode(topStores));
+      print('Caching ${stores.length} stores...');
+      final storesData = stores.map((store) => store.toFirestore()..['id'] = store.id).toList();
+      final encodedData = jsonEncode(storesData);
+      await _prefs.setString(STORES_CACHE_KEY, encodedData);
       await _updateCacheTimestamp();
+      print('Stores cached successfully');
     } catch (e) {
       print('Error caching stores: $e');
     }
   }
 
-  Future<void> cacheTopAdvertisements(List<Advertisement> ads) async {
+  Future<void> cacheAdvertisements(List<Advertisement> ads) async {
     try {
-      final topAds = ads
-          .where((ad) => ad.available)
-          .take(CACHE_LIMIT)
-          .map((ad) => ad.toFirestore())
-          .toList();
-      await _prefs.setString(ADS_CACHE_KEY, jsonEncode(topAds));
+      print('Caching ${ads.length} advertisements...');
+      // Solo guardamos los anuncios disponibles
+      final availableAds = ads.where((ad) => ad.available).toList();
+      final adsData = availableAds.map((ad) => ad.toFirestore()..['id'] = ad.id).toList();
+      final encodedData = jsonEncode(adsData);
+      await _prefs.setString(ADS_CACHE_KEY, encodedData);
       await _updateCacheTimestamp();
+      print('Advertisements cached successfully');
     } catch (e) {
       print('Error caching advertisements: $e');
     }
@@ -81,12 +58,22 @@ class CacheService {
 
   Future<List<Store>> getCachedStores() async {
     try {
+      print('Getting cached stores...');
       final String? cachedData = _prefs.getString(STORES_CACHE_KEY);
-      if (cachedData == null) return [];
+      if (cachedData == null || cachedData.isEmpty) {
+        print('No cached stores found');
+        return [];
+      }
       
       final List<dynamic> storesJson = jsonDecode(cachedData);
-      return storesJson.asMap().entries.map((entry) => 
-        Store.fromFirestore(entry.value, 'cached_${entry.key}')).toList();
+      final stores = storesJson.map((storeData) {
+        final String id = storeData['id'] ?? '';
+        storeData.remove('id');
+        return Store.fromFirestore(storeData, id);
+      }).toList();
+      
+      print('Retrieved ${stores.length} cached stores');
+      return stores;
     } catch (e) {
       print('Error getting cached stores: $e');
       return [];
@@ -95,12 +82,22 @@ class CacheService {
 
   Future<List<Advertisement>> getCachedAdvertisements() async {
     try {
+      print('Getting cached advertisements...');
       final String? cachedData = _prefs.getString(ADS_CACHE_KEY);
-      if (cachedData == null) return [];
+      if (cachedData == null || cachedData.isEmpty) {
+        print('No cached advertisements found');
+        return [];
+      }
       
       final List<dynamic> adsJson = jsonDecode(cachedData);
-      return adsJson.asMap().entries.map((entry) => 
-        Advertisement.fromFirestore(entry.value, 'cached_${entry.key}')).toList();
+      final ads = adsJson.map((adData) {
+        final String id = adData['id'] ?? '';
+        adData.remove('id');
+        return Advertisement.fromFirestore(adData, id);
+      }).toList();
+      
+      print('Retrieved ${ads.length} cached advertisements');
+      return ads;
     } catch (e) {
       print('Error getting cached advertisements: $e');
       return [];
@@ -122,6 +119,16 @@ class CacheService {
     } catch (e) {
       print('Error checking internet connection: $e');
       return false;
+    }
+  }
+
+  Future<void> clearCache() async {
+    try {
+      print('Clearing cache...');
+      await _prefs.clear();
+      print('Cache cleared successfully');
+    } catch (e) {
+      print('Error clearing cache: $e');
     }
   }
 }
