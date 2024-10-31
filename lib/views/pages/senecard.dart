@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:senecard/views/pages/Owner/owner_page.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
 import 'loginpages/introLogin.dart';
 
@@ -18,7 +19,7 @@ class _SenecartState extends State<Senecard> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    Widget screenWidget = const MainPage();
+    Widget screenWidget = const OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV');
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
