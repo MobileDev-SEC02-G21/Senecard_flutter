@@ -14,6 +14,8 @@ class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance; // Instancia de Firebase Storage
+  // Obtener el ID del usuario actual
+  String? get currentUserId => _auth.currentUser?.uid;
 
   // Método para registrar una tienda
   Future<DocumentReference> registerStore({

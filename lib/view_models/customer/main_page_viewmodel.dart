@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:senecard/models/advertisement.dart';
 import 'package:senecard/models/store.dart';
 import 'package:senecard/services/FireStoreService.dart';
+import 'package:senecard/services/FirebaseAuthService.dart';
 import 'package:senecard/services/cache_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
 
 class MainPageViewmodel extends ChangeNotifier {
-  // State
-  final String _userId = "1Lp1RRd1uo11fgfIsFMU";
+
+  final String _userId = FirebaseAuthService().currentUserId??'';
   String _screenWidget = 'offers-screen';
   bool _searchBarVisible = true;
   Icon _icon = const Icon(Icons.menu);
@@ -21,21 +22,19 @@ class MainPageViewmodel extends ChangeNotifier {
   bool _hasError = false;
   bool _isOnline = true;
 
-  // Subscriptions
-  bool _subscriptionsActive = false;
-  StreamSubscription? _connectivitySubscription;
-  StreamSubscription? _storesSubscription;
-  StreamSubscription? _advertisementsSubscription;
-  Timer? _periodicTimer;
-
+  // Services
   final FirestoreService _firestoreService = FirestoreService();
   late final CacheService _cacheService;
   final ConnectivityService _connectivityService = ConnectivityService();
 
+  // Control flags
+  bool _isInitialized = false;
+  bool _isRefreshing = false;
+
   // Getters
-  // Getters que devuelven copias inmutables
   List<Store> get stores => List.unmodifiable(_stores);
   List<Advertisement> get advertisements => List.unmodifiable(_advertisements);
+  String get userId => _userId;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   bool get isOnline => _isOnline;
@@ -44,28 +43,29 @@ class MainPageViewmodel extends ChangeNotifier {
   Icon get icon => _icon;
   bool get buttonMenu => _buttonMenu;
 
-
-  static bool _instanceExists = false;
-  bool _initialized = false;
+  // Subscriptions
+  StreamSubscription? _connectivitySubscription;
+  StreamSubscription? _storesSubscription;
+  StreamSubscription? _advertisementsSubscription;
+  Timer? _periodicTimer;
 
   MainPageViewmodel() {
-    if (_instanceExists) {
-      print('WARNING: Multiple instances of MainPageViewModel being created!');
-    }
-    _instanceExists = true;
-    print('MainPageViewModel constructor called');
     _initializeOnce();
   }
 
   Future<void> _initializeOnce() async {
-    if (_initialized) {
-      print('MainPageViewModel already initialized, skipping');
-      return;
-    }
+    if (_isInitialized) return;
+    _isInitialized = true;
 
-    print('Starting MainPageViewModel initialization');
-    _initialized = true;
-    await _initializeServices();
+    try {
+      _cacheService = await CacheService.initialize();
+      await _initializeConnectivity();
+      await _initializeData();
+      _startPeriodicCacheUpdate();
+    } catch (e) {
+      print('Error in initialization: $e');
+      _handleError();
+    }
   }
 
   Future<void> _initializeServices() async {
@@ -91,36 +91,125 @@ class MainPageViewmodel extends ChangeNotifier {
     }
   }
 
-  void _setupConnectivityListener() {
-    _connectivitySubscription?.cancel();
-    _connectivitySubscription = _connectivityService.onConnectivityChanged
-        .listen((hasConnectivity) async {
-      print('Connectivity changed. Has connectivity: $hasConnectivity');
-      
-      final wasOffline = !_isOnline;
-      _isOnline = hasConnectivity;
-      
-      if (hasConnectivity && wasOffline) {
-        print('Recovering from offline state, refreshing data...');
-        _isLoading = true;
-        notifyListeners();
-        
-        // Cancelar suscripciones existentes antes de crear nuevas
-        await _cancelExistingSubscriptions();
-        
-        // Recargar datos
-        await _setupStreamSubscriptions();
-      } else if (!hasConnectivity) {
-        print('Device went offline, loading from cache...');
-        await _loadFromCache();
-      }
-      
-      notifyListeners();
-    });
+  Future<void> _initializeConnectivity() async {
+    _isOnline = await _connectivityService.hasInternetConnection();
+    _setupConnectivityListener();
   }
 
-  Future<void> _cancelExistingSubscriptions() async {
-    print('Canceling existing subscriptions...');
+  void _setupConnectivityListener() {
+    _connectivitySubscription?.cancel();
+    _connectivitySubscription = _connectivityService.onConnectivityChanged.listen(
+      (hasConnectivity) async {
+        final wasOffline = !_isOnline;
+        _isOnline = hasConnectivity;
+
+        if (hasConnectivity && wasOffline && !_isRefreshing) {
+          await refreshData();
+        }
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> _initializeData() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      if (_isOnline) {
+        await _setupStreamSubscriptions();
+      } else {
+        await _loadFromCache();
+      }
+    } catch (e) {
+      print('Error in data initialization: $e');
+      await _loadFromCache();
+    }
+  }
+
+  Future<void> refreshData() async {
+    if (!_isOnline || _isRefreshing) return;
+
+    try {
+      _isRefreshing = true;
+      _isLoading = true;
+      notifyListeners();
+
+      await _cancelSubscriptions();
+      await _setupStreamSubscriptions();
+      
+      _isLoading = false;
+      _hasError = false;
+    } catch (e) {
+      print('Error refreshing data: $e');
+      _handleError();
+    } finally {
+      _isRefreshing = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _setupStreamSubscriptions() async {
+    await _cancelSubscriptions();
+
+    _storesSubscription = _firestoreService.getStores().listen(
+      (newStores) {
+        _stores = newStores..sort((a, b) => b.rating.compareTo(a.rating));
+        _cacheService.cacheStores(_stores);
+        _updateLoadingState();
+      },
+      onError: (e) async {
+        print('Error in stores stream: $e');
+        await _loadFromCache();
+      },
+    );
+
+    _advertisementsSubscription = _firestoreService.getAdvertisements().listen(
+      (newAds) {
+        _advertisements = newAds;
+        _cacheService.cacheAdvertisements(_advertisements);
+        _updateLoadingState();
+      },
+      onError: (e) async {
+        print('Error in advertisements stream: $e');
+        await _loadFromCache();
+      },
+    );
+  }
+
+  void _updateLoadingState() {
+    if (_stores.isNotEmpty || _advertisements.isNotEmpty) {
+      _isLoading = false;
+      _hasError = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadFromCache() async {
+    try {
+      final cachedStores = await _cacheService.getCachedStores();
+      final cachedAds = await _cacheService.getCachedAdvertisements();
+
+      if (cachedStores.isNotEmpty) _stores = cachedStores;
+      if (cachedAds.isNotEmpty) _advertisements = cachedAds;
+
+      _hasError = cachedStores.isEmpty && cachedAds.isEmpty;
+    } catch (e) {
+      print('Error loading from cache: $e');
+      _handleError();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _handleError() {
+    _hasError = true;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> _cancelSubscriptions() async {
     await _storesSubscription?.cancel();
     await _advertisementsSubscription?.cancel();
     _storesSubscription = null;
@@ -130,177 +219,19 @@ class MainPageViewmodel extends ChangeNotifier {
   void _startPeriodicCacheUpdate() {
     _periodicTimer?.cancel();
     _periodicTimer = Timer.periodic(const Duration(hours: 1), (_) async {
-      if (await _cacheService.hasInternetConnection()) {
-        await _fetchAndCacheData();
+      if (_isOnline && !_isRefreshing) {
+        await refreshData();
       }
     });
   }
 
-  Future<void> _fetchAndCacheData() async {
-    if (!_isOnline) return;
-
-    try {
-      print('Fetching and caching data...');
-
-      // Obtener datos más recientes
-      final storesFuture = _firestoreService.getStores().first;
-      final adsFuture = _firestoreService.getAdvertisements().first;
-
-      final results = await Future.wait([storesFuture, adsFuture]);
-
-      final newStores = results[0] as List<Store>;
-      final newAds = results[1] as List<Advertisement>;
-
-      // Actualizar datos en memoria
-      _stores = newStores..sort((a, b) => b.rating.compareTo(a.rating));
-      _advertisements = newAds;
-
-      // Actualizar caché
-      await Future.wait([
-        _cacheService.cacheStores(_stores),
-        _cacheService.cacheAdvertisements(_advertisements)
-      ]);
-
-      _hasError = false;
-      _isLoading = false;
-      notifyListeners();
-
-      print('Data fetched and cached successfully');
-    } catch (e) {
-      print('Error in _fetchAndCacheData: $e');
-      // Si falla el fetch, intentamos cargar desde caché
-      await _loadFromCache();
-    }
-  }
-
-  Future<void> _initializeData() async {
-    print('Initializing data...');
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final hasInternet = await _cacheService.hasInternetConnection();
-      _isOnline = hasInternet;
-
-      if (hasInternet) {
-        await _setupStreamSubscriptions();
-        await _fetchAndCacheData();
-      } else {
-        await _loadFromCache();
-      }
-    } catch (e) {
-      print('Error in _initializeData: $e');
-      _hasError = true;
-      await _loadFromCache();
-    }
-  }
-
-  Future<void> _setupStreamSubscriptions() async {
-    if (_subscriptionsActive) {
-      print('Subscriptions already active, skipping setup');
-      return;
-    }
-
-    print('Setting up stream subscriptions...');
-    await _cancelExistingSubscriptions();
-
-    try {
-      _subscriptionsActive = true;
-
-      // Suscripción a stores
-      _storesSubscription = _firestoreService.getStores().listen(
-        (stores) {
-          print('Received ${stores.length} stores');
-          if (!_subscriptionsActive) return;
-          
-          _stores = List<Store>.from(stores)
-            ..sort((a, b) => b.rating.compareTo(a.rating));
-          
-          if (_isOnline) {
-            _cacheService.cacheStores(_stores);
-          }
-          
-          _isLoading = false;
-          notifyListeners();
-        },
-        onError: (error) {
-          print('Error in stores stream: $error');
-          if (!_subscriptionsActive) return;
-          _loadFromCache();
-        },
-      );
-
-      // Suscripción a advertisements
-      _advertisementsSubscription = _firestoreService.getAdvertisements().listen(
-        (advertisements) {
-          print('Received ${advertisements.length} advertisements');
-          if (!_subscriptionsActive) return;
-          
-          _advertisements = List<Advertisement>.from(advertisements);
-          
-          if (_isOnline) {
-            _cacheService.cacheAdvertisements(_advertisements);
-          }
-          
-          _isLoading = false;
-          notifyListeners();
-        },
-        onError: (error) {
-          print('Error in advertisements stream: $error');
-          if (!_subscriptionsActive) return;
-          _loadFromCache();
-        },
-      );
-    } catch (e) {
-      print('Error setting up stream subscriptions: $e');
-      _subscriptionsActive = false;
-      await _loadFromCache();
-    }
-  }
-
-  Future<void> _loadFromCache() async {
-    try {
-      print('Loading data from cache...');
-      _isLoading = true;
-      notifyListeners();
-
-      final cachedStores = await _cacheService.getCachedStores();
-      final cachedAds = await _cacheService.getCachedAdvertisements();
-      
-      print('Loaded from cache: ${cachedStores.length} stores, ${cachedAds.length} ads');
-      
-      // Solo actualizamos los datos si tenemos algo en el caché
-      if (cachedStores.isNotEmpty) {
-        _stores = cachedStores;
-      }
-      if (cachedAds.isNotEmpty) {
-        _advertisements = cachedAds;
-      }
-      
-      // Marcamos error solo si ambas listas están vacías
-      _hasError = cachedStores.isEmpty && cachedAds.isEmpty;
-      
-    } catch (e) {
-      print('Error loading from cache: $e');
-      _hasError = true;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> onRefresh() async {
-    print('Manual refresh requested');
-    if (!_isOnline) {
-      print('Cannot refresh: device is offline');
-      return;
-    }
-
-    _isLoading = true;
-    notifyListeners();
-
-    await _cancelExistingSubscriptions();
-    await _setupStreamSubscriptions();
+  @override
+  void dispose() {
+    _periodicTimer?.cancel();
+    _connectivitySubscription?.cancel();
+    _cancelSubscriptions();
+    _isInitialized = false;
+    super.dispose();
   }
 
   // Navigation methods
@@ -338,16 +269,4 @@ class MainPageViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
-  @override
-  void dispose() {
-    print('Disposing MainPageViewModel');
-    _instanceExists = false;
-    _initialized = false;
-    _subscriptionsActive = false;
-    _periodicTimer?.cancel();
-    _connectivitySubscription?.cancel();
-    _storesSubscription?.cancel();
-    _advertisementsSubscription?.cancel();
-    super.dispose();
-  }
 }

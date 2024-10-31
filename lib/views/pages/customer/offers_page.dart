@@ -20,7 +20,7 @@ class OffersPage extends StatelessWidget {
         final offersViewModel = OffersPageViewModel(
           stores: mainViewModel.stores,
           advertisements: mainViewModel.advertisements,
-          refreshCallback: mainViewModel.onRefresh,
+          refreshCallback: mainViewModel.refreshData,
         );
 
         final storeElements = offersViewModel.getTopStores();
