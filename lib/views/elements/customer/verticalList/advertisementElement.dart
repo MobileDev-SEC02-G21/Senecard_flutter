@@ -126,7 +126,7 @@ class _AdvertisementElementState extends State<AdvertisementElement> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: imageProvider,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.fill,
                       ),
                     ),
                   );
