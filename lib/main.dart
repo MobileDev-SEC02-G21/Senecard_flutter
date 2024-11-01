@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart'; 
 import 'package:senecard/firebase_options.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
+import 'package:senecard/view_models/owner/owner_page_vm.dart';
 import 'package:senecard/views/pages/senecard.dart';
 
 
@@ -21,9 +22,15 @@ void main() async {
   final mainViewModel = MainPageViewmodel();
 
   runApp(
-    // Usar ChangeNotifierProvider.value para mantener la misma instancia
-    ChangeNotifierProvider.value(
-      value: mainViewModel,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: mainViewModel,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OwnerPageViewModel(), // Ajusta el nombre según tu clase
+        ),
+      ],
       child: const Senecard(),
     ),
   );
