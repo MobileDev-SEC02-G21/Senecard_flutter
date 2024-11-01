@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; 
-import 'package:senecard/view_models/owner/owner_page_vm.dart'; 
+import 'package:provider/provider.dart';
+import 'package:senecard/view_models/owner/owner_page_vm.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:senecard/views/elements/shared/sidemenu.dart';
 import 'package:senecard/views/elements/shared/topbar.dart';
-import 'advertisement_list.dart'; 
-import 'qr_page.dart'; 
+import 'advertisement_list.dart';
+import 'qr_page.dart';
 
 class OwnerPage extends StatefulWidget {
-  final String storeId; 
+  final String storeId;
 
   const OwnerPage({super.key, required this.storeId});
 
@@ -28,18 +29,52 @@ class _OwnerPageState extends State<OwnerPage> {
   @override
   void initState() {
     super.initState();
-    
-    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context, listen: false);
 
-    
-    ownerPageViewModel.fetchCustomersScannedToday(widget.storeId); 
-    ownerPageViewModel.fetchStoreRating(widget.storeId); 
-    ownerPageViewModel.fetchActiveAdvertisements(widget.storeId); 
+    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context, listen: false);
+    ownerPageViewModel.fetchCustomersScannedToday(widget.storeId);
+    ownerPageViewModel.fetchStoreRating(widget.storeId);
+    ownerPageViewModel.fetchActiveAdvertisements(widget.storeId);
+  }
+
+  Future<void> _checkConnectivityAndNavigateToQR() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      // Si hay conexión, navega a la pantalla de escaneo de QR
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QrScanPage(storeId: widget.storeId),
+        ),
+      );
+    } else {
+      // Si no hay conexión, muestra un AlertDialog
+      _showNoConnectivityDialog();
+    }
+  }
+
+  void _showNoConnectivityDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("No Connectivity"),
+          content: const Text("You need to be online to scan a QR code."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context); 
+    final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -50,15 +85,7 @@ class _OwnerPageState extends State<OwnerPage> {
         message: "Let's Check Your Progress",
         trailing: [
           IconButton(
-            onPressed: () {
-              
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => QrScanPage(storeId: widget.storeId), 
-                ),
-              );
-            },
+            onPressed: _checkConnectivityAndNavigateToQR, // Usa el nuevo método de verificación de conectividad
             icon: const Icon(Icons.qr_code),
             color: Colors.white,
             style: const ButtonStyle(
@@ -77,7 +104,7 @@ class _OwnerPageState extends State<OwnerPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 50), 
+            const SizedBox(height: 50),
             const Text(
               'Welcome Back To Senecard!',
               style: TextStyle(
@@ -85,43 +112,43 @@ class _OwnerPageState extends State<OwnerPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 40), 
+            const SizedBox(height: 40),
             const Text(
               'You’ve had',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 20),
-            
+
             Stack(
               alignment: Alignment.center,
               children: [
-                
+
                 Positioned(
-                  top: 100, 
+                  top: 100,
                   child: Container(
                     width: 200,
-                    height: 100, 
+                    height: 100,
                     color: Colors.white,
                   ),
                 ),
-                
+
                 Container(
                   width: 200,
-                  height: 100, 
+                  height: 100,
                   decoration: const BoxDecoration(
                     color: Colors.black87,
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(100), 
+                      top: Radius.circular(100),
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   top: 25,
                   child: Column(
                     children: [
                       Text(
-                        '${ownerPageViewModel.customersScannedToday}',  
+                        '${ownerPageViewModel.customersScannedToday}',
                         style: const TextStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
@@ -134,7 +161,7 @@ class _OwnerPageState extends State<OwnerPage> {
               ],
             ),
             const SizedBox(height: 20),
-            
+
             const Text(
               'Customers scanned today\nKeep up the good work!',
               textAlign: TextAlign.center,
@@ -143,13 +170,13 @@ class _OwnerPageState extends State<OwnerPage> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 60), 
+            const SizedBox(height: 60),
             const Text(
               'Current Business average Rating',
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            const SizedBox(height: 30), 
-            
+            const SizedBox(height: 30),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -162,20 +189,20 @@ class _OwnerPageState extends State<OwnerPage> {
                 );
               }),
             ),
-            const SizedBox(height: 60), 
-            
+            const SizedBox(height: 60),
+
             ElevatedButton(
               onPressed: () {
-                
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AdvertisementPage(storeId: widget.storeId), 
+                    builder: (context) => AdvertisementPage(storeId: widget.storeId),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange, 
+                backgroundColor: Colors.orange,
                 padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

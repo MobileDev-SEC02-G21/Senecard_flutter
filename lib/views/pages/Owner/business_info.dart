@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/view_models/owner/business_viewmodel.dart';
-import 'edit_business.dart';  // Importa la página EditBusinessPage
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'edit_business.dart';
 
 class BusinessInfoPage extends StatefulWidget {
-  final String storeId; // Recibe el ID de la tienda
+  final String storeId;
 
   const BusinessInfoPage({super.key, required this.storeId});
 
@@ -16,9 +17,42 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
   @override
   void initState() {
     super.initState();
-    // Llamamos a la función del ViewModel para obtener los datos del negocio
     final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context, listen: false);
     businessInfoViewModel.fetchStoreData(widget.storeId);
+  }
+
+  Future<void> _checkConnectivityAndNavigateToEdit() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EditProfilePage(storeId: widget.storeId),
+        ),
+      );
+    } else {
+      _showNoConnectivityDialog();
+    }
+  }
+
+  void _showNoConnectivityDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("No Connectivity"),
+          content: const Text("You need to be online to edit your profile."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -33,7 +67,7 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Regresar a la pantalla anterior
+            Navigator.pop(context);
           },
         ),
         title: const Text(
@@ -45,15 +79,7 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              // Navegar a la página de edición pasando el storeId
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditProfilePage(storeId: widget.storeId),
-                ),
-              );
-            },
+            onPressed: _checkConnectivityAndNavigateToEdit,
             child: const Text(
               'EDIT',
               style: TextStyle(
@@ -66,7 +92,7 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
         ],
       ),
       body: businessInfoViewModel.isLoading
-          ? const Center(child: CircularProgressIndicator()) // Mostrar un indicador de carga
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
@@ -77,14 +103,14 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.orange[100], // Color de fondo (imagen del negocio)
+                  backgroundColor: Colors.orange[100],
                   child: const Icon(
-                    Icons.store, // Ícono de negocio
+                    Icons.store,
                     size: 50,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 20), // Espaciado entre la imagen y el texto
+                const SizedBox(width: 20),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -109,7 +135,6 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
               ],
             ),
             const SizedBox(height: 30),
-            // Caja de información del negocio
             Container(
               padding: const EdgeInsets.all(15.0),
               decoration: BoxDecoration(
@@ -145,7 +170,6 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
     );
   }
 
-  // Helper para construir filas de información
   Widget _buildInfoRow({
     required IconData icon,
     required String label,
