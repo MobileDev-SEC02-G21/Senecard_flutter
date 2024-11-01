@@ -29,7 +29,13 @@ class _OwnerPageState extends State<OwnerPage> {
   @override
   void initState() {
     super.initState();
+    // Programa la inicialización para después del build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeData();
+    });
+  }
 
+  void _initializeData() {
     final ownerPageViewModel = Provider.of<OwnerPageViewModel>(context, listen: false);
     ownerPageViewModel.fetchCustomersScannedToday(widget.storeId);
     ownerPageViewModel.fetchStoreRating(widget.storeId);
