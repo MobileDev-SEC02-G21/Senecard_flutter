@@ -14,10 +14,12 @@ class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance; // Instancia de Firebase Storage
+  // Obtener el ID del usuario actual
+  String? get currentUserId => _auth.currentUser?.uid;
 
   // Método para registrar una tienda
   Future<DocumentReference> registerStore({
-    required String storeName,
+    required String name,
     required String address,
     required String category,
     required File storeImage,
@@ -25,11 +27,11 @@ class FirebaseAuthService {
   }) async {
     try {
       // Sube la imagen a Firebase Storage y obtén la URL
-      String imageUrl = await _uploadStoreImage(storeImage, storeName); // Aquí pasamos el segundo argumento
+      String imageUrl = await _uploadStoreImage(storeImage, name); // Aquí pasamos el segundo argumento
 
       // Crea un nuevo documento en la colección 'stores' en Firestore
       DocumentReference storeRef = await FirebaseFirestore.instance.collection('stores').add({
-        'storeName': storeName,
+        'name': name,
         'address': address,
         'category': category,
         'imageUrl': imageUrl,
@@ -45,10 +47,10 @@ class FirebaseAuthService {
   }
 
   // Método auxiliar para subir la imagen a Firebase Storage
-  Future<String> _uploadStoreImage(File storeImage, String storeName) async {
+  Future<String> _uploadStoreImage(File storeImage, String name) async {
     try {
       // Crear la referencia de almacenamiento
-      Reference ref = _storage.ref().child('stores_images').child('$storeName.jpg');
+      Reference ref = _storage.ref().child('stores_images').child('$name.jpg');
 
       // Subir el archivo a Firebase Storage
       UploadTask uploadTask = ref.putFile(storeImage);

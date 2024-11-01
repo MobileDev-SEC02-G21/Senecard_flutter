@@ -28,7 +28,7 @@ class AppStrings {
 
   static const String password = 'Password';
   static const String pleaseEnterPassword = 'Please, Enter Password';
-  static const String invalidPassword = 'Invalid Password';
+  static const String invalidPassword = "La contraseña debe tener:\n- Una letra mayúscula\n- Una letra minúscula\n- Un número\n- Un carácter especial (@, #, !, %, *, ?, &, _)";
 
   static const String confirmPassword = 'Confirm Password';
   static const String pleaseReEnterPassword = 'Please, Re-Enter Password';

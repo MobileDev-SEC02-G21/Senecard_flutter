@@ -19,7 +19,7 @@ class _SenecartState extends State<Senecard> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    Widget screenWidget = const OwnerPage(storeId: 'JLLPCvGOlzJ7dpr6D4oV');
+    Widget screenWidget = const IntroScreen();
     return MaterialApp(
       title: 'Senecard',
       theme: ThemeData(
