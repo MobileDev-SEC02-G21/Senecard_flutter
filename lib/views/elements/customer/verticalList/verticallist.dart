@@ -4,7 +4,14 @@ import 'dart:async';
 class StoreList extends StatefulWidget {
   final List<Widget> displayItems;
   final bool shorter;
-  const StoreList({super.key, required this.displayItems, this.shorter = false});
+  final bool isAdvertisement;
+
+  const StoreList(
+      {super.key, 
+      required this.displayItems, 
+      this.shorter = false,
+      this.isAdvertisement = false,
+      });
 
   @override
   State<StatefulWidget> createState() => _StoreListState();
@@ -17,13 +24,15 @@ class _StoreListState extends State<StoreList> {
   @override
   void initState() {
     super.initState();
-    print('StoreList initState called');
+    print('StoreList initState called. Is Advertisement: ${widget.isAdvertisement}');
     _updateDisplayItems();
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      setState(() {
-        print('StoreList periodic setState called');
-        _updateDisplayItems();
-      });
+      if (mounted) {
+        setState(() {
+          print('StoreList periodic setState called');
+          _updateDisplayItems();
+        });
+      }
     });
   }
 
@@ -37,7 +46,9 @@ class _StoreListState extends State<StoreList> {
   }
 
   void _updateDisplayItems() {
-    int listLength = widget.shorter && widget.displayItems.length > 3 ? 3 : widget.displayItems.length;
+    int listLength = widget.shorter && widget.displayItems.length > 3
+        ? 3
+        : widget.displayItems.length;
     displayItems = widget.displayItems.take(listLength).toList();
     print('Updated displayItems. Length: ${displayItems.length}');
   }
@@ -50,9 +61,10 @@ class _StoreListState extends State<StoreList> {
 
   @override
   Widget build(BuildContext context) {
-    print('StoreList build called. DisplayItems length: ${displayItems.length}');
+    print(
+        'StoreList build called. DisplayItems length: ${displayItems.length}');
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 10),
+      padding: const EdgeInsets.only(left: 10, right: 10),
       child: Column(
         children: displayItems.map((widget) {
           print('Rendering widget in StoreList: ${widget.runtimeType}');

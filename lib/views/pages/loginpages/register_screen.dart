@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/services/FirebaseAuthService.dart'; // Import FirebaseAuthService
+import 'package:senecard/services/FirebaseAuthService.dart';
 import '../../elements/login/components/app_text_form_field.dart';
 
 import '../../elements/login/values/app_regex.dart';
@@ -22,7 +22,7 @@ class RegisterPage extends StatefulWidget {
 void _navigateToRegisterSelectionPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => RegisterSelectionPage()),
+    MaterialPageRoute(builder: (context) => const RegisterSelectionPage()),
   );
 }
 
@@ -206,38 +206,38 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         children: [
           Row(
             children: [
               IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.orange),
+                  icon: const Icon(Icons.arrow_back, color: Colors.orange),
                   onPressed: () {
                     _navigateToRegisterSelectionPage(context);
                   }
               ),
             ],
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'Uniandes Member',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Enter the information',
             style: TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const Text('NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   autofocus: true,
                   controller: nameController,
@@ -261,9 +261,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('EMAIL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('EMAIL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: emailController,
                   labelText: 'Email',
@@ -286,9 +286,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         : AppStrings.invalidEmailAddress;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('PHONE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('PHONE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: phoneController,
                   labelText: 'Phone',
@@ -311,9 +311,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 ValueListenableBuilder(
                   valueListenable: passwordNotifier,
                   builder: (_, passwordObscure, __) {
@@ -349,9 +349,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     );
                   },
                 ),
-                SizedBox(height: 20),
-                Text('CONFIRM PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('CONFIRM PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 ValueListenableBuilder(
                   valueListenable: confirmPasswordNotifier,
                   builder: (_, confirmPasswordObscure, __) {
@@ -389,7 +389,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     );
                   },
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 ValueListenableBuilder(
                   valueListenable: fieldValidNotifier,
                   builder: (_, isValid, __) {
@@ -399,14 +399,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: isValid
                             ? _registerUser // Call the registration method here
                             : null,
-                        child: Text('REGISTER'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        child: const Text('REGISTER'),
                       ),
                     );
                   },

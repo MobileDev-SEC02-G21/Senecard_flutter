@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:async'; // Para usar Timer
 
 class StoreElement extends StatefulWidget {
+  final String storeId;
   final String image;
   final String storeName;
-  final double ? rating;
-  final TimeOfDay opened;
-  final TimeOfDay closed;
+  final double? rating;
+  final Map schedule;
 
   const StoreElement({
     super.key,
@@ -14,8 +14,8 @@ class StoreElement extends StatefulWidget {
         "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=",
     required this.storeName,
     required this.rating,
-    this.opened = const TimeOfDay(hour: 8, minute: 0),
-    this.closed = const TimeOfDay(hour: 12, minute: 23),
+    required this.schedule,
+    required this.storeId,
   });
 
   @override
@@ -27,7 +27,7 @@ class StoreElement extends StatefulWidget {
 class _StoreElementState extends State<StoreElement> {
   late Timer _timer;
   bool isOpen = true;
-  final now = TimeOfDay.now();
+
   @override
   void initState() {
     super.initState();
@@ -40,15 +40,43 @@ class _StoreElementState extends State<StoreElement> {
   }
 
   void _isStoreOpen() {
-    final now = TimeOfDay.now();
-    isOpen =  _checkStoreStatus(now, widget.opened, widget.closed);
+    final now = DateTime.now();
+    String currentDay = _getCurrentDay(now.weekday);
+    isOpen = _checkStoreStatus(now, currentDay);
   }
 
-  bool _checkStoreStatus(TimeOfDay now, TimeOfDay start, TimeOfDay end) {
-    final nowMinutes = now.hour * 60 + now.minute;
-    final startMinutes = start.hour * 60 + start.minute;
-    final endMinutes = end.hour * 60 + end.minute;
-    return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+  String _getCurrentDay(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'monday';
+      case 2:
+        return 'tuesday';
+      case 3:
+        return 'wednesday';
+      case 4:
+        return 'thursday';
+      case 5:
+        return 'friday';
+      case 6:
+        return 'saturday';
+      case 7:
+        return 'sunday';
+      default:
+        return 'monday';
+    }
+  }
+
+  bool _checkStoreStatus(DateTime now, String currentDay) {
+    if (!widget.schedule.containsKey(currentDay)) return false;
+
+    final List<dynamic> hours = widget.schedule[currentDay];
+    if (hours.length != 2) return false;
+
+    final int openHour = hours[0];
+    final int closeHour = hours[1];
+    final int currentHour = now.hour;
+
+    return currentHour >= openHour && currentHour < closeHour;
   }
 
   @override

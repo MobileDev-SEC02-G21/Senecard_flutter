@@ -216,26 +216,26 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
               ),
             ],
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'Business Owner',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Enter the information',
             style: TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const Text('NAME', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   autofocus: true,
                   controller: nameController,
@@ -259,9 +259,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                         : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('EMAIL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('EMAIL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: emailController,
                   labelText: 'Email',
@@ -284,9 +284,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                         : AppStrings.invalidEmailAddress;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('PHONE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('PHONE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 AppTextFormField(
                   controller: phoneController,
                   labelText: 'Phone',
@@ -309,9 +309,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                         : null;
                   },
                 ),
-                SizedBox(height: 20),
-                Text('PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 ValueListenableBuilder(
                   valueListenable: passwordNotifier,
                   builder: (_, passwordObscure, __) {
@@ -347,9 +347,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                     );
                   },
                 ),
-                SizedBox(height: 20),
-                Text('CONFIRM PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('CONFIRM PASSWORD', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
                 ValueListenableBuilder(
                   valueListenable: confirmPasswordNotifier,
                   builder: (_, confirmPasswordObscure, __) {
@@ -387,7 +387,7 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                     );
                   },
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 ValueListenableBuilder(
                   valueListenable: fieldValidNotifier,
                   builder: (_, isValid, __) {
@@ -397,14 +397,14 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                         onPressed: isValid
                             ? _registerUser // Call the registration method here
                             : null,
-                        child: Text('NEXT'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        child: const Text('NEXT'),
                       ),
                     );
                   },

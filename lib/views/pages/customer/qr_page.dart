@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 import 'package:senecard/view_models/customer/qr_page_viewmodel.dart';
 
 class QrPage extends StatelessWidget {
@@ -8,8 +9,9 @@ class QrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mainViewModel = Provider.of<MainPageViewmodel>(context);
     return ChangeNotifierProvider(
-      create: (_) => QrPageViewModel(),
+      create: (_) => QrPageViewModel(userId: mainViewModel.userId),
       child: Consumer<QrPageViewModel>(
         builder: (context, viewModel, child) {
           viewModel.logQrRenderTime();

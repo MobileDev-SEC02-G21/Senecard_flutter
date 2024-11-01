@@ -14,6 +14,8 @@ class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance; // Instancia de Firebase Storage
+  // Obtener el ID del usuario actual
+  String? get currentUserId => _auth.currentUser?.uid;
 
   // Método para registrar una tienda
   Future<DocumentReference> registerStore({
@@ -102,12 +104,12 @@ class FirebaseAuthService {
         if (role == 'uniandesMember') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => MainPage()),
+            MaterialPageRoute(builder: (context) => const MainPage()),
           );
         } else if (role == 'businessOwner') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
+            MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
           );
         }
 
