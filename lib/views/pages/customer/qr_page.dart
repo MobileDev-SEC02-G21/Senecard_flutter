@@ -14,7 +14,52 @@ class QrPage extends StatelessWidget {
       create: (_) => QrPageViewModel(userId: mainViewModel.userId),
       child: Consumer<QrPageViewModel>(
         builder: (context, viewModel, child) {
-          viewModel.logQrRenderTime();
+          if (viewModel.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color.fromARGB(255, 255, 122, 40),
+              ),
+            );
+          }
+          if (viewModel.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    viewModel.errorMessage.contains('internet') 
+                        ? Icons.wifi_off
+                        : Icons.error_outline,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    viewModel.errorMessage,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: viewModel.refreshQR,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 255, 122, 40),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                    ),
+                    child: const Text("Try Again"),
+                  ),
+                ],
+              ),
+            );
+          }
+          
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

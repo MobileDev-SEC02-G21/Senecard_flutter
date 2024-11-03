@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class Advertisement {
   final String id;            // ID del anuncio
   final String storeId;       // ID de la tienda correspondiente
