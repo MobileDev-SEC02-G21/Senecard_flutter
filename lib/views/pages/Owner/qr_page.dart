@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:senecard/view_models/owner/qr_viewmodel.dart'; // Importa el ViewModel
-import 'qr_response_page.dart'; // Importa la página de respuesta del QR
+import 'package:senecard/view_models/owner/qr_viewmodel.dart';
+import 'qr_response_page.dart';
 
 class QrScanPage extends StatefulWidget {
-  final String storeId; // Recibe el ID de la tienda
+  final String storeId;
 
   const QrScanPage({super.key, required this.storeId});
 
