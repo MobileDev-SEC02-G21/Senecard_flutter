@@ -1,3 +1,4 @@
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
@@ -12,8 +13,8 @@ import '../views/pages/customer/main_page.dart';
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
+  final FirebaseStorage _storage = FirebaseStorage.instance; // Instancia de Firebase Storage
+  // Obtener el ID del usuario actual
   String? get currentUserId => _auth.currentUser?.uid;
 
   // Método para registrar una tienda
@@ -25,35 +26,47 @@ class FirebaseAuthService {
     required String businessOwnerId,
   }) async {
     try {
-      String imageUrl = await _uploadStoreImage(storeImage, name);
+      // Sube la imagen a Firebase Storage y obtén la URL
+      String imageUrl = await _uploadStoreImage(storeImage, name); // Aquí pasamos el segundo argumento
+
+      // Crea un nuevo documento en la colección 'stores' en Firestore
       DocumentReference storeRef = await FirebaseFirestore.instance.collection('stores').add({
         'name': name,
         'address': address,
         'category': category,
         'imageUrl': imageUrl,
         'businessOwnerId': businessOwnerId,
-        'rating': 0,
+        'rating': 0, // Puedes cambiar esto o añadir más campos si es necesario
       });
-      return storeRef;
+
+      return storeRef; // Devolver el DocumentReference
     } catch (e) {
       print('Error al registrar la tienda: $e');
-      rethrow;
+      rethrow; // Propagar el error para que pueda manejarse en la UI
     }
   }
 
   // Método auxiliar para subir la imagen a Firebase Storage
   Future<String> _uploadStoreImage(File storeImage, String name) async {
     try {
+      // Crear la referencia de almacenamiento
       Reference ref = _storage.ref().child('stores_images').child('$name.jpg');
+
+      // Subir el archivo a Firebase Storage
       UploadTask uploadTask = ref.putFile(storeImage);
+
+      // Esperar a que la carga termine y obtener la URL de descarga
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
+
+      return downloadUrl; // Retornar la URL de la imagen
     } catch (e) {
       print('Error uploading image: $e');
-      rethrow;
+      rethrow; // Rethrow para manejar el error en la UI
     }
   }
+
+
 
   // Sign up user with email and password
   Future<User?> registerWithEmailAndPassword(String email, String password, String name, String phone, String role) async {
@@ -61,6 +74,7 @@ class FirebaseAuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
       if (user != null) {
+        // Create a document for the new user in Firestore
         await _firestore.collection('users').doc(user.uid).set({
           'email': user.email,
           'name': name,
@@ -82,50 +96,44 @@ class FirebaseAuthService {
       User? user = result.user;
 
       if (user != null) {
+        // Obtener los datos del usuario desde Firestore
         DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
-        String role = userDoc['role'];
+        String role = userDoc['role']; // Verifica que el campo 'role' esté en Firestore
 
+        // Verificar el rol y navegar a la página correspondiente
         if (role == 'uniandesMember') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const MainPage()),
           );
         } else if (role == 'businessOwner') {
-          // Realiza una consulta en la colección stores para obtener el storeId
-          QuerySnapshot storeSnapshot = await _firestore
-              .collection('stores')
-              .where('businessOwnerId', isEqualTo: user.uid)
-              .limit(1)
-              .get();
-
-          if (storeSnapshot.docs.isNotEmpty) {
-            String storeId = storeSnapshot.docs.first.id;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => OwnerPage(storeId: storeId)),
-            );
-          } else {
-            print('No se encontró una tienda para este usuario.');
-          }
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
+          );
         }
 
         return user;
       }
-      return null;
+      return null; // Si el usuario es null
     } catch (e) {
       print(e.toString());
-      return null;
+      return null; // Manejo de errores
     }
   }
+
 
   // Fetch user data from Firestore
   Future<DocumentSnapshot> getUserData(String uid) async {
     try {
+      // Fetch the document for the user with the given uid
       DocumentSnapshot document = await _firestore.collection('users').doc(uid).get();
       return document;
     } catch (e) {
       print(e.toString());
-      rethrow;
+      rethrow; // In case of failure, rethrow the error
     }
   }
+
+
 }
