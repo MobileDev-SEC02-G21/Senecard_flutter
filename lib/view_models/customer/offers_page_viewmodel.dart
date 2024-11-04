@@ -51,6 +51,7 @@ class OffersPageViewModel extends ChangeNotifier {
       
       return AdvertisementElement(
         key: ValueKey('advert_${ad.id}_${entry.key}_${timestamp}'),
+        id: ad.id,
         image: ad.image,
         available: ad.available,
         endDate: ad.endDate,

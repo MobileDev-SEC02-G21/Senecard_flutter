@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // Para usar Timer
+import 'package:provider/provider.dart';
+import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
+import 'dart:async';
+
+import 'package:senecard/views/pages/customer/store_detail_page.dart'; // Para usar Timer
 
 class StoreElement extends StatefulWidget {
   final String storeId;
@@ -89,59 +93,75 @@ class _StoreElementState extends State<StoreElement> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(widget.image),
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.circular(100),
-                color: isOpen ? null : Colors.grey,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.storeName,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: isOpen ? Colors.black : Colors.grey,
+    return InkWell(
+      onTap: () {
+        final mainViewmodel =
+            Provider.of<MainPageViewmodel>(context, listen: false);
+        final store = mainViewmodel.stores.firstWhere(
+          (store) => store.id == widget.storeId,
+          orElse: () => throw Exception('Store not found.'),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StoreDetailPage(store: store),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(widget.image),
+                    fit: BoxFit.cover,
                   ),
+                  borderRadius: BorderRadius.circular(100),
+                  color: isOpen ? null : Colors.grey,
                 ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star_border,
-                      color: Color.fromARGB(255, 255, 122, 40),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.storeName,
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: isOpen ? Colors.black : Colors.grey,
                     ),
-                    const SizedBox(width: 5),
-                    Text(
-                      effectiveRating.toString(),
-                      style: TextStyle(
-                        color: isOpen ? Colors.black : Colors.grey,
+                  ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star_border,
+                        color: Color.fromARGB(255, 255, 122, 40),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        const Divider(
-          thickness: 1.5,
-          color: Color.fromARGB(255, 240, 245, 250),
-          indent: 2,
-          endIndent: 2,
-        )
-      ],
+                      const SizedBox(width: 5),
+                      Text(
+                        effectiveRating.toString(),
+                        style: TextStyle(
+                          color: isOpen ? Colors.black : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Divider(
+            thickness: 1.5,
+            color: Color.fromARGB(255, 240, 245, 250),
+            indent: 2,
+            endIndent: 2,
+          )
+        ],
+      ),
     );
   }
 }
