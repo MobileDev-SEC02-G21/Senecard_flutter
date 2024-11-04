@@ -40,6 +40,7 @@ class AdsPageViewmodel extends ChangeNotifier {
 
           return AdvertisementElement(
             key: ValueKey('advert_${ad.id}_${entry.key}_${timestamp}'),
+            id: ad.id,
             image: ad.image,
             startDate: ad.startDate,
             storeId: ad.storeId,
