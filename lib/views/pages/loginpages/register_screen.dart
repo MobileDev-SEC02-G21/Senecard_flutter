@@ -168,6 +168,54 @@ class _RegisterPageState extends State<RegisterPage> {
       },
     );
   }
+
+  // Función para mostrar el Dialog de error
+  void showErrorConectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const SizedBox(height: 20),
+                const Text(
+                  "Error",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "No Se pudo completar la acción, porque no existe conexión a internet,\n conectesé e intenté de nuevo.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cerrar el popup de error
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Aceptar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _registerUser() async {
     if (_formKey.currentState?.validate() ?? false) {
       final name = nameController.text;
@@ -177,27 +225,32 @@ class _RegisterPageState extends State<RegisterPage> {
 
       showLoadingDialog(context);
 
-      // Call FirebaseAuthService to register the user with the role "uniandesMember"
-      final user = await _firebaseAuthService.registerWithEmailAndPassword(
-        email,
-        password,
-        name,
-        phone,
-        "uniandesMember",
-      );
+      try {
+        // Call FirebaseAuthService to register the user with the role "uniandesMember"
+        final user = await _firebaseAuthService.registerWithEmailAndPassword(
+          email,
+          password,
+          name,
+          phone,
+          "uniandesMember",
+        );
 
-      if (user != null) {
-        // Navigate to the main page on successful registration
-        _navigateToMainPage(context);
-        SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
-        nameController.clear();
-        emailController.clear();
-        phoneController.clear();
-        passwordController.clear();
-        confirmPasswordController.clear();
-      } else {
-        showErrorDialog(context);
-        SnackbarHelper.showSnackBar('Registration failed. Please try again.');
+        if (user != null) {
+          // Navigate to the main page on successful registration
+          _navigateToMainPage(context);
+          SnackbarHelper.showSnackBar(AppStrings.registrationComplete);
+          nameController.clear();
+          emailController.clear();
+          phoneController.clear();
+          passwordController.clear();
+          confirmPasswordController.clear();
+        } else {
+          showErrorConectionDialog(context);
+          SnackbarHelper.showSnackBar('Registration failed. Please try again.');
+        }
+      } catch (e) {
+        // error de conectividad con firebase
+        showErrorConectionDialog(context);
       }
     }
   }
