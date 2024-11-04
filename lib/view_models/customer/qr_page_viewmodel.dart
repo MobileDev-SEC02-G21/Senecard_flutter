@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
 import 'package:senecard/services/qr_storage_service.dart';
 
 class QrPageViewModel extends ChangeNotifier {
   final String userId;
   final ConnectivityService _connectivityService = ConnectivityService();
+  final QRAnalyticsService _analyticsService = QRAnalyticsService();
   late final QrStorageService _qrStorageService;
   bool _isLoading = true;
   bool _hasError = false;
@@ -63,6 +65,7 @@ class QrPageViewModel extends ChangeNotifier {
 
       _isLoading = false;
       notifyListeners();
+
     } catch (e) {
       print('Error initializing QR: $e');
       _hasError = true;
@@ -84,5 +87,25 @@ class QrPageViewModel extends ChangeNotifier {
     
     await _qrStorageService.clearStoredUserId();
     await _initializeQR();
+  }
+
+  Future<void> logQRRenderTime(int renderTimeMs) async {
+    try {
+      final hasInternet = await _connectivityService.hasInternetConnection();
+      
+      if (!hasInternet) {
+        print('Skipping QR render time logging: No internet connection');
+        return;
+      }
+
+      await _analyticsService.logQRRenderTime(
+        userId: userId,
+        renderTimeMs: renderTimeMs,
+      );
+      
+      print('Logged QR render time: $renderTimeMs ms');
+    } catch (e) {
+      print('Error logging QR render time: $e');
+    }
   }
 }
