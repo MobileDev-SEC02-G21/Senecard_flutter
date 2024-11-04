@@ -80,7 +80,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
   }
 
   // Función para mostrar el Dialog de error
-  void showErrorDialog(BuildContext context) {
+  void showErrorConectionDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -100,7 +100,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  "El correo o la contraseña son incorrectos.",
+                  "No Se pudo completar la acción, porque no existe conexión a la base de datos,\n conectesé a la red e intenté de nuevo.",
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
@@ -169,6 +169,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       );
 
     } catch (e) {
+      showErrorConectionDialog(context);
       print('Error al actualizar el horario: $e');
     }
   }
