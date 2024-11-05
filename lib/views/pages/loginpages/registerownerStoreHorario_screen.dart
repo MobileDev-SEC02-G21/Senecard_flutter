@@ -3,7 +3,6 @@ import 'package:senecard/views/pages/Owner/owner_page.dart';
 import 'package:senecard/views/pages/loginpages/registerownerStore_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class StoreSchedulePage extends StatefulWidget {
   final String storeId; // Recibe el ID de la tienda
 
@@ -19,14 +18,6 @@ void _navigateToRegisterownerStorePage(BuildContext context) {
     MaterialPageRoute(builder: (context) => const RegisterownerStorePage()),
   );
 }
-
-void _navigateToBusinessInfoPage(BuildContext context, String storeId) {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => OwnerPage(storeId: storeId)),
-  );
-}
-
 
 class _StoreSchedulePageState extends State<StoreSchedulePage> {
   final Map<String, TimeOfDay?> _openingTimes = {
@@ -59,7 +50,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(color: Colors.orange), // Indicador de carga
+                CircularProgressIndicator(color: Colors.orange),
                 const SizedBox(height: 20),
                 const Text(
                   "Loading",
@@ -79,7 +70,6 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
     );
   }
 
-  // Función para mostrar el Dialog de error
   void showErrorConectionDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -92,7 +82,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error, color: Colors.red, size: 60), // Icono de error
+                const Icon(Icons.error, color: Colors.red, size: 60),
                 const SizedBox(height: 20),
                 const Text(
                   "Error",
@@ -151,8 +141,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       schedule[day.toLowerCase()] = [
         openingTime!.hour,
         closingTime!.hour,
-
-      ]; // Guarda el horario en formato [apertura, cierre]
+      ];
     });
     showLoadingDialog(context);
 
@@ -162,13 +151,14 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
       });
       print('Horario actualizado');
 
-      // Navegar a BusinessInfoPage después de actualizar el horario
+      // Navigate to OwnerPage with the storeId passed to this widget
+      Navigator.pop(context); // Close the loading dialog
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
+        MaterialPageRoute(builder: (context) => OwnerPage(storeId: widget.storeId)),
       );
-
     } catch (e) {
+      Navigator.pop(context); // Close the loading dialog
       showErrorConectionDialog(context);
       print('Error al actualizar el horario: $e');
     }
@@ -211,7 +201,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
                 children: [
                   Text(day.toUpperCase(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   _timeButton(context, day, true),
-                  Text('-'),
+                  const Text('-'),
                   _timeButton(context, day, false),
                 ],
               ),
@@ -221,9 +211,7 @@ class _StoreSchedulePageState extends State<StoreSchedulePage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                _saveSchedule(); // Guardar el horario
-              },
+              onPressed: _saveSchedule,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 padding: const EdgeInsets.symmetric(vertical: 15),

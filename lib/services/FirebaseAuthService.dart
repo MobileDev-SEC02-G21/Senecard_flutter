@@ -96,31 +96,54 @@ class FirebaseAuthService {
       User? user = result.user;
 
       if (user != null) {
-        // Obtener los datos del usuario desde Firestore
-        DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
-        String role = userDoc['role']; // Verifica que el campo 'role' esté en Firestore
+        // Log the business owner ID (user UID) to the console
+        print('Business Owner ID: ${user.uid}');
 
-        // Verificar el rol y navegar a la página correspondiente
+        // Fetch the user's document from Firestore
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+        String role = userDoc['role']; // Check if the 'role' field exists in Firestore
+
+        // Verify role and retrieve storeId if the user is a businessOwner
         if (role == 'uniandesMember') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const MainPage()),
           );
         } else if (role == 'businessOwner') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const OwnerPage(storeId: 'vpMbEwQvJ5SBjnzU1TGf')),
-          );
-        }
+          // Query Firestore for all stores and find the one associated with this businessOwner
+          print('Attempting to query store with businessOwnerId: ${user.uid}');
 
+          QuerySnapshot storeQuery = await _firestore.collection('stores').get();
+
+          // Find the first document where 'businessOwnerId' matches user.uid
+          var storeDoc = storeQuery.docs.cast<QueryDocumentSnapshot?>().firstWhere(
+                (doc) => doc?['businessOwnerId'] == user.uid,
+            orElse: () => null,
+          );
+
+          if (storeDoc != null) {
+            String storeId = storeDoc.id;
+            print('Retrieved Store ID: $storeId');
+
+            // Navigate to OwnerPage with the dynamically retrieved storeId
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => OwnerPage(storeId: storeId)),
+            );
+          } else {
+            // Handle case where no store is found for this business owner
+            print('No store found for this business owner.');
+          }
+        }
         return user;
       }
-      return null; // Si el usuario es null
+      return null;
     } catch (e) {
       print(e.toString());
-      return null; // Manejo de errores
+      return null; // Error handling
     }
   }
+
 
 
   // Fetch user data from Firestore
