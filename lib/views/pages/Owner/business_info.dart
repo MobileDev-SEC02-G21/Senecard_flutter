@@ -17,8 +17,10 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
   @override
   void initState() {
     super.initState();
-    final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context, listen: false);
-    businessInfoViewModel.fetchStoreData(widget.storeId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context, listen: false);
+      businessInfoViewModel.fetchStoreData(widget.storeId);
+    });
   }
 
   Future<void> _checkConnectivityAndNavigateToEdit() async {
