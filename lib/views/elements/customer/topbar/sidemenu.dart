@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:senecard/services/profile_storage_service.dart';
 import 'package:senecard/services/qr_storage_service.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 import 'package:senecard/views/pages/loginpages/introLogin.dart';
@@ -10,8 +11,12 @@ class SideMenuDrawer extends StatelessWidget {
 
   Future<void> _handleLogout(BuildContext context) async {
     try {
+      final userId =
+          Provider.of<MainPageViewmodel>(context, listen: false).userId;
       final qrStorageService = await QrStorageService.initialize();
+      final profileStorageService = await ProfileStorageService.initialize();
       await qrStorageService.clearStoredUserId();
+      await profileStorageService.clearProfile(userId);
 
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(

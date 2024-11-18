@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/models/store.dart';
+import 'package:senecard/services/loyalty_cards_service.dart';
+import 'package:senecard/view_models/customer/loyalty_cards_viewmodel.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -12,92 +13,162 @@ class LoyaltyCardsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<MainPageViewmodel>(
-      builder: (context, viewModel, child) {
-        print('Current userId: ${viewModel.userId}'); // Debug userId
-
-        return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('loyaltyCards')
-              .where('uniandesMemberId', isEqualTo: viewModel.userId)
-              .where('isCurrent', isEqualTo: true)
-              .snapshots(),
+      builder: (context, mainViewModel, child) {
+        return FutureBuilder<LoyaltyCardsService>(
+          future: LoyaltyCardsService.initialize(),
           builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              print('Firestore error: ${snapshot.error}'); // Debug error
-              return const Center(
-                child: Text('Something went wrong'),
-              );
-            }
-
             if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: Text('Error initializing loyalty cards service'),
               );
             }
 
-            final loyaltyCards = snapshot.data?.docs ?? [];
-            
-            // Debug loyalty cards data
-            print('Found ${loyaltyCards.length} loyalty cards');
-            for (var card in loyaltyCards) {
-              print('Card data: ${card.data()}');
-              print('Card ID: ${card.id}');
-            }
-
-            // También hagamos una consulta directa para verificar
-            FirebaseFirestore.instance
-                .collection('loyaltyCards')
-                .get()
-                .then((QuerySnapshot querySnapshot) {
-                  print('Total documents in collection: ${querySnapshot.size}');
-                  querySnapshot.docs.forEach((doc) {
-                    print('Document ID: ${doc.id}');
-                    print('Document data: ${doc.data()}');
-                  });
-                });
-
-            if (loyaltyCards.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No loyalty cards available',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                  ),
-                ),
-              );
-            }
-
-            // Resto del código igual...
-            return ListView.builder(
-              itemCount: loyaltyCards.length,
-              itemBuilder: (context, index) {
-                final card = loyaltyCards[index];
-                final storeId = card['storeId'] as String;
-                final store = viewModel.stores.firstWhere(
-                  (s) => s.id == storeId,
-                  orElse: () => Store(
-                    id: '',
-                    name: 'Unknown Store',
-                    address: '',
-                    category: '',
-                    rating: 0,
-                    image: '',
-                    businessOwnerId: '',
-                    schedule: {},
-                  ),
-                );
-
-                return LoyaltyCardItem(
-                  store: store,
-                  maxPoints: card['maxPoints'] as int,
-                  currentPoints: card['points'] as int,
-                );
-              },
+            return ChangeNotifierProvider(
+              create: (_) => LoyaltyCardsViewModel(
+                userId: mainViewModel.userId,
+                stores: mainViewModel.stores,
+                loyaltyCardsService: snapshot.data!,
+              ),
+              child: const LoyaltyCardsContent(),
             );
           },
         );
       },
+    );
+  }
+}
+
+class LoyaltyCardsContent extends StatelessWidget {
+  const LoyaltyCardsContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LoyaltyCardsViewModel>(
+      builder: (context, viewModel, child) {
+        if (viewModel.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (viewModel.hasError && viewModel.loyaltyCards.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Error loading loyalty cards',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: viewModel.refresh,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 122, 40),
+                  ),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!viewModel.isOnline) {
+          return Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                color: Colors.orange.shade100,
+                child: const Row(
+                  children: [
+                    Icon(Icons.wifi_off, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Offline mode - Showing cached loyalty cards',
+                        style: TextStyle(color: Colors.orange),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (viewModel.loyaltyCards.isEmpty)
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'No cached loyalty cards available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: LoyaltyCardsList(viewModel: viewModel),
+                ),
+            ],
+          );
+        }
+
+        if (viewModel.loyaltyCards.isEmpty) {
+          return const Center(
+            child: Text(
+              'No loyalty cards available',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        }
+
+        return LoyaltyCardsList(viewModel: viewModel);
+      },
+    );
+  }
+}
+
+class LoyaltyCardsList extends StatelessWidget {
+  final LoyaltyCardsViewModel viewModel;
+
+  const LoyaltyCardsList({
+    super.key,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: viewModel.refresh,
+      child: ListView.builder(
+        itemCount: viewModel.loyaltyCards.length,
+        itemBuilder: (context, index) {
+          final card = viewModel.loyaltyCards[index];
+          final store = viewModel.getStoreForCard(card);
+
+          return LoyaltyCardItem(
+            store: store,
+            maxPoints: card['maxPoints'] as int,
+            currentPoints: card['points'] as int,
+          );
+        },
+      ),
     );
   }
 }
@@ -137,31 +208,49 @@ class LoyaltyCardItem extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(store.image),
-                  fit: BoxFit.cover,
-                ),
                 borderRadius: BorderRadius.circular(100),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: CachedNetworkImage(
+                  imageUrl: store.image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.store, color: Colors.grey),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.error),
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  store.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    store.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  '$currentPoints / $maxPoints stamps',
-                  style: const TextStyle(
-                    color: Colors.grey,
+                  Text(
+                    '$currentPoints / $maxPoints stamps',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+              size: 16,
             ),
           ],
         ),
@@ -191,7 +280,6 @@ class LoyaltyCardDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Button
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: IconButton(
@@ -204,13 +292,20 @@ class LoyaltyCardDetailPage extends StatelessWidget {
                 ),
               ),
               
-              // Store Image
               SizedBox(
                 width: double.infinity,
                 height: 200,
                 child: CachedNetworkImage(
                   imageUrl: store.image,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.error),
+                  ),
                 ),
               ),
 
@@ -239,17 +334,28 @@ class LoyaltyCardDetailPage extends StatelessWidget {
                     
                     const SizedBox(height: 24),
                     
-                    Text(
-                      'Stamps to get a prize: $maxPoints',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progress: $currentPoints / $maxPoints',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${((currentPoints / maxPoints) * 100).toStringAsFixed(1)}%',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color.fromARGB(255, 255, 122, 40),
+                          ),
+                        ),
+                      ],
                     ),
                     
                     const SizedBox(height: 16),
                     
-                    // Stamps Grid
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

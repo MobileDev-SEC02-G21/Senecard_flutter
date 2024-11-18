@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:senecard/services/profile_storage_service.dart';
 import 'package:senecard/view_models/customer/profile_viewmodel.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
+
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -10,9 +12,30 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<MainPageViewmodel>(
       builder: (context, mainViewModel, child) {
-        return ChangeNotifierProvider(
-          create: (_) => ProfileViewModel(userId: mainViewModel.userId),
-          child: const ProfileContent(),
+        return FutureBuilder<ProfileStorageService>(
+          future: ProfileStorageService.initialize(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text(
+                  'Error initializing profile service',
+                  style: TextStyle(color: Colors.red),
+                ),
+              );
+            }
+
+            return ChangeNotifierProvider(
+              create: (_) => ProfileViewModel(
+                userId: mainViewModel.userId,
+                storageService: snapshot.data!,
+              ),
+              child: const ProfileContent(),
+            );
+          },
         );
       },
     );
@@ -47,12 +70,53 @@ class _ProfileContentState extends State<ProfileContent> {
     super.dispose();
   }
 
+  void _showNoInternetSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('No internet connection available'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfileViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!viewModel.isOnline) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.wifi_off,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'No internet connection',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: viewModel.retryLoading,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 122, 40),
+                  ),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
         }
 
         if (!viewModel.isEditing) {
@@ -77,12 +141,20 @@ class _ProfileContentState extends State<ProfileContent> {
                 const SizedBox(height: 20),
                 _buildInfoItem('NAME', viewModel.name, Icons.person_outline),
                 _buildInfoItem('EMAIL', viewModel.email, Icons.email_outlined),
-                _buildInfoItem('PHONE NUMBER', viewModel.phone, Icons.phone_outlined),
+                _buildInfoItem(
+                    'PHONE NUMBER', viewModel.phone, Icons.phone_outlined),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: viewModel.toggleEditMode,
+                    onPressed: viewModel.isOnline
+                        ? () {
+                            viewModel.startEditing();
+                            _nameController.text = viewModel.name;
+                            _emailController.text = viewModel.email;
+                            _phoneController.text = viewModel.phone;
+                          }
+                        : () => _showNoInternetSnackBar(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 255, 122, 40),
                       foregroundColor: Colors.white,
@@ -95,10 +167,6 @@ class _ProfileContentState extends State<ProfileContent> {
             ),
           );
         } else {
-          _nameController.text = viewModel.name;
-          _emailController.text = viewModel.email;
-          _phoneController.text = viewModel.phone;
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -118,33 +186,74 @@ class _ProfileContentState extends State<ProfileContent> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _buildTextField('NAME', _nameController),
-                _buildTextField('EMAIL', _emailController),
-                _buildTextField('PHONE NUMBER', _phoneController),
+                _buildTextField(
+                  'NAME',
+                  _nameController,
+                  errorText: viewModel.nameError,
+                  onChanged: viewModel.validateName,
+                ),
+                _buildTextField(
+                  'EMAIL',
+                  _emailController,
+                  errorText: viewModel.emailError,
+                  onChanged: viewModel.validateEmail,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                _buildTextField(
+                  'PHONE NUMBER',
+                  _phoneController,
+                  errorText: viewModel.phoneError,
+                  onChanged: viewModel.validatePhone,
+                  keyboardType: TextInputType.number,
+                ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final success = await viewModel.updateProfile(
-                        name: _nameController.text,
-                        email: _emailController.text,
-                        phone: _phoneController.text,
-                      );
-                      
-                      if (success && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Profile updated successfully')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 255, 122, 40),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          viewModel.cancelEditing();
+                          _nameController.clear();
+                          _emailController.clear();
+                          _phoneController.clear();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        child: const Text('CANCEL'),
+                      ),
                     ),
-                    child: const Text('SAVE'),
-                  ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: viewModel.isFormValid
+                            ? () async {
+                                final success = await viewModel.updateProfile();
+                                if (success && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Profile updated successfully')),
+                                  );
+                                  _nameController.clear();
+                                  _emailController.clear();
+                                  _phoneController.clear();
+                                }
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 255, 122, 40),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          disabledBackgroundColor: Colors.grey,
+                        ),
+                        child: const Text('SAVE'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -184,7 +293,13 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? errorText,
+    void Function(String)? onChanged,
+    TextInputType? keyboardType,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -199,12 +314,62 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
           TextField(
             controller: controller,
-            decoration: const InputDecoration(
-              fillColor: Color(0xFFF5F8FF),
+            keyboardType: keyboardType,
+            onChanged: (value) {
+              // Solo limpiamos los espacios múltiples si existen
+              if (label == 'NAME' && value.contains(RegExp(r'\s{2,}'))) {
+                final cursorPos = controller.selection;
+                final cleanedValue = value.replaceAll(RegExp(r'\s{2,}'), ' ');
+
+                if (cleanedValue != value) {
+                  controller.text = cleanedValue;
+                  // Ajustamos la posición del cursor
+                  final newCursorPos = cursorPos.baseOffset -
+                      (value.length - cleanedValue.length);
+                  controller.selection = TextSelection.fromPosition(
+                    TextPosition(
+                        offset: newCursorPos.clamp(0, cleanedValue.length)),
+                  );
+                }
+              }
+
+              if (onChanged != null) {
+                onChanged(controller.text);
+              }
+            },
+            decoration: InputDecoration(
+              fillColor: const Color(0xFFF5F8FF),
               filled: true,
               border: InputBorder.none,
+              errorText: errorText,
+              errorStyle: TextStyle(
+                color: errorText == null && controller.text.isNotEmpty
+                    ? Colors.green
+                    : Colors.red,
+              ),
             ),
           ),
+          if (errorText == null && controller.text.isNotEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'Looks good!',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
