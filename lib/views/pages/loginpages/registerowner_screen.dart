@@ -63,12 +63,14 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
   void controllerListener() {
     final name = nameController.text;
     final email = emailController.text;
+    final phone = phoneController.text;
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
 
-    if (name.isEmpty && email.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
+    if (name.isEmpty && email.isEmpty && phone.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
+        AppRegex.phoneRegex.hasMatch(password) &&
         AppRegex.passwordRegex.hasMatch(password) &&
         AppRegex.passwordRegex.hasMatch(confirmPassword)) {
       fieldValidNotifier.value = true;
@@ -309,9 +311,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                   validator: (value) {
                     return value!.isEmpty
                         ? AppStrings.pleaseEnterName
-                        : value.length < 4
-                        ? AppStrings.invalidName
-                        : null;
+                        : (AppConstants.nameRegex.hasMatch(value)
+                        ? null: AppStrings.invalidName);
+
                   },
                 ),
                 const SizedBox(height: 20),
@@ -358,10 +360,9 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
                   onChanged: (_) => _formKey.currentState?.validate(),
                   validator: (value) {
                     return value!.isEmpty
-                        ? 'Please enter phone number'
-                        : value.length < 10
-                        ? 'Invalid phone number'
-                        : null;
+                        ? AppStrings.pleaseEnterPhone
+                        : (AppConstants.phoneRegex.hasMatch(value)
+                        ? null: AppStrings.invalidName);
                   },
                 ),
                 const SizedBox(height: 20),

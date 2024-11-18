@@ -20,6 +20,7 @@ class AppStrings {
 
   static const String name = 'Name';
   static const String pleaseEnterName = 'Please, Enter Name';
+  static const String pleaseEnterPhone = 'Please, Enter Name';
   static const String invalidName = 'Invalid Name';
 
   static const String email = 'Email';
@@ -28,7 +29,7 @@ class AppStrings {
 
   static const String password = 'Password';
   static const String pleaseEnterPassword = 'Please, Enter Password';
-  static const String invalidPassword = "La contraseña debe tener:\n- Una letra mayúscula\n- Una letra minúscula\n- Un número\n- Un carácter especial (@, #, !, %, *, ?, &, _)";
+  static const String invalidPassword = "La contraseña debe tener:\n- Una letra mayúscula\n- Una letra minúscula\n- Un número\n- Un carácter especial (@, #, !, %, *, ?, &, _)\n- mas de 5 caracteres";
 
   static const String confirmPassword = 'Confirm Password';
   static const String pleaseReEnterPassword = 'Please, Re-Enter Password';
