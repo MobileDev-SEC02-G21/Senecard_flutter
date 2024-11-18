@@ -1,23 +1,36 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileStorageService {
-  static const String PROFILE_CACHE_KEY = 'cached_profile';
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SharedPreferences _prefs;
+  static const String PROFILE_CACHE_KEY = 'profile_cache';
+  static const Duration CACHE_DURATION = Duration(days: 1);
   
-  ProfileStorageService._(this._prefs);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final DefaultCacheManager _cacheManager;
+  final StreamController<Map<String, dynamic>> _profileController;
+  
+  static ProfileStorageService? _instance;
+  
+  ProfileStorageService._() 
+    : _cacheManager = DefaultCacheManager(),
+      _profileController = StreamController<Map<String, dynamic>>.broadcast();
 
   static Future<ProfileStorageService> initialize() async {
+    if (_instance != null) return _instance!;
+    
     try {
-      final prefs = await SharedPreferences.getInstance();
-      return ProfileStorageService._(prefs);
+      _instance = ProfileStorageService._();
+      return _instance!;
     } catch (e) {
       print('Error initializing ProfileStorageService: $e');
       rethrow;
     }
   }
+
+  Stream<Map<String, dynamic>> get profileStream => _profileController.stream;
 
   Future<Map<String, dynamic>> getProfile(String? userId) async {
     if (userId == null || userId.isEmpty) {
@@ -78,12 +91,22 @@ class ProfileStorageService {
         return;
       }
 
-      final key = '${PROFILE_CACHE_KEY}_$userId';
+      final cacheKey = '${PROFILE_CACHE_KEY}_$userId';
       final encodedData = jsonEncode(profile);
-      await _prefs.setString(key, encodedData);
+      final bytes = Uint8List.fromList(utf8.encode(encodedData));
+
+      await _cacheManager.putFile(
+        cacheKey,
+        bytes,
+        maxAge: CACHE_DURATION,
+        key: cacheKey,
+      );
+
+      _profileController.add(profile);
       print('Profile cached successfully for user: $userId');
     } catch (e) {
       print('Error caching profile: $e');
+      rethrow;
     }
   }
 
@@ -94,16 +117,24 @@ class ProfileStorageService {
         return {};
       }
 
-      final key = '${PROFILE_CACHE_KEY}_$userId';
-      final String? cachedData = _prefs.getString(key);
+      final cacheKey = '${PROFILE_CACHE_KEY}_$userId';
+      final fileInfo = await _cacheManager.getFileFromCache(cacheKey);
       
-      if (cachedData == null || cachedData.isEmpty) {
+      if (fileInfo == null) {
         print('No cached profile found for user: $userId');
         return {};
       }
-      
-      final decoded = jsonDecode(cachedData) as Map<String, dynamic>;
+
+      if (fileInfo.validTill.isBefore(DateTime.now())) {
+        print('Cached profile expired for user: $userId');
+        await _cacheManager.removeFile(cacheKey);
+        return {};
+      }
+
+      final String jsonString = await fileInfo.file.readAsString();
+      final Map<String, dynamic> decoded = jsonDecode(jsonString);
       print('Retrieved cached profile for user: $userId');
+      _profileController.add(decoded);
       return decoded;
     } catch (e) {
       print('Error getting cached profile: $e');
@@ -135,11 +166,17 @@ class ProfileStorageService {
     }
 
     try {
-      final key = '${PROFILE_CACHE_KEY}_$userId';
-      await _prefs.remove(key);
+      final cacheKey = '${PROFILE_CACHE_KEY}_$userId';
+      await _cacheManager.removeFile(cacheKey);
+      _profileController.add({});
       print('Profile cache cleared for user: $userId');
     } catch (e) {
       print('Error clearing profile cache: $e');
+      rethrow;
     }
+  }
+
+  void dispose() {
+    _profileController.close();
   }
 }

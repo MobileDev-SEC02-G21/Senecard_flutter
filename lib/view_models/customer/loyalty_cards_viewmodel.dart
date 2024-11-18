@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:senecard/models/store.dart';
 import 'package:senecard/services/connectivity_service.dart';
@@ -13,13 +14,25 @@ class LoyaltyCardsViewModel extends ChangeNotifier {
   bool _hasError = false;
   bool _isOnline = true;
   List<Map<String, dynamic>> _loyaltyCards = [];
+  String _errorMessage = '';
+
 
   LoyaltyCardsViewModel({
     required this.userId,
     required this.stores,
     required LoyaltyCardsService loyaltyCardsService,
   }) : _loyaltyCardsService = loyaltyCardsService {
-    _initialize();
+    if (!FirebaseAuth.instance.currentUser!.uid.isNotEmpty ?? false) {
+      throw StateError('LoyaltyCardsViewModel initialized without valid authentication');
+    }
+    if (userId.isEmpty) {
+      _hasError = true;
+      _errorMessage = 'No user ID available';
+      _isLoading = false;
+      notifyListeners();
+    } else {
+      _initialize();
+    }
   }
 
   bool get isLoading => _isLoading;
@@ -44,15 +57,25 @@ class LoyaltyCardsViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadLoyaltyCards() async {
+    if (userId.isEmpty) {
+      _hasError = true;
+      _errorMessage = 'No user ID available';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
     try {
       _isLoading = true;
       notifyListeners();
 
       _loyaltyCards = await _loyaltyCardsService.getLoyaltyCards(userId);
       _hasError = false;
+      _errorMessage = '';
     } catch (e) {
       print('Error loading loyalty cards: $e');
       _hasError = true;
+      _errorMessage = 'Error loading loyalty cards';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -69,7 +92,7 @@ class LoyaltyCardsViewModel extends ChangeNotifier {
     try {
       return stores.firstWhere((s) => s.id == storeId);
     } catch (e) {
-      // Si no encontramos la tienda, devolvemos una tienda por defecto
+      print('Store not found for ID: $storeId');
       return Store(
         id: storeId,
         name: 'Store Not Available',

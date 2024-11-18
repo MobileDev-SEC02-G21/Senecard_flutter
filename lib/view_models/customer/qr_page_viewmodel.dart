@@ -1,3 +1,5 @@
+// lib/view_models/customer/qr_page_viewmodel.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
@@ -8,31 +10,38 @@ class QrPageViewModel extends ChangeNotifier {
   final ConnectivityService _connectivityService = ConnectivityService();
   final QRAnalyticsService _analyticsService = QRAnalyticsService();
   late final QrStorageService _qrStorageService;
+  
+  bool _isInitialized = false;
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
   String? _storedUserId;
 
+  bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
   String? get storedUserId => _storedUserId;
 
-
   QrPageViewModel({required this.userId}) {
-    _initializeServices();
+    print('QrPageViewModel constructor - userId: $userId');
+    initializeViewModel();
   }
 
-   Future<void> _initializeServices() async {
+  Future<void> initializeViewModel() async {
     try {
-      // Inicializar el servicio si no existe
+      print('Initializing QrPageViewModel services');
       _qrStorageService = await QrStorageService.initialize();
       await _initializeQR();
+      _isInitialized = true;
+      notifyListeners();
+      print('QrPageViewModel initialization complete');
     } catch (e) {
-      print('Error initializing services: $e');
+      print('Error in QrPageViewModel initialization: $e');
       _hasError = true;
-      _errorMessage = 'Error initializing services';
+      _errorMessage = 'Error initializing QR services';
       _isLoading = false;
+      _isInitialized = true;
       notifyListeners();
     }
   }
@@ -40,36 +49,29 @@ class QrPageViewModel extends ChangeNotifier {
   Future<void> _initializeQR() async {
     try {
       _isLoading = true;
-      _hasError = false;
-      _errorMessage = '';
       notifyListeners();
 
-      // Verificar si ya existe un userId almacenado
+      print('Initializing QR for userId: $userId');
       _storedUserId = await _qrStorageService.getStoredUserId();
       
-      // Si no existe, verificar conectividad antes de guardar
-      if (_storedUserId == null) {
+      if (_storedUserId == null || _storedUserId != userId) {
         final hasInternet = await _connectivityService.hasInternetConnection();
         
         if (!hasInternet) {
-          _hasError = true;
-          _errorMessage = 'No internet available to generate the QR code';
-          _isLoading = false;
-          notifyListeners();
-          return;
+          throw Exception('No internet connection available');
         }
 
         await _qrStorageService.storeUserId(userId);
         _storedUserId = userId;
+        print('Updated stored userId: $userId');
       }
 
       _isLoading = false;
       notifyListeners();
-
     } catch (e) {
-      print('Error initializing QR: $e');
+      print('Error in _initializeQR: $e');
       _hasError = true;
-      _errorMessage = 'Unexpected error occurred';
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
     }
@@ -103,7 +105,7 @@ class QrPageViewModel extends ChangeNotifier {
         renderTimeMs: renderTimeMs,
       );
       
-      print('Logged QR render time: $renderTimeMs ms');
+      print('Logged QR render time: $renderTimeMs ms for user: $userId');
     } catch (e) {
       print('Error logging QR render time: $e');
     }

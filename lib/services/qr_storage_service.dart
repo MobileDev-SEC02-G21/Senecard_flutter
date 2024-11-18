@@ -1,30 +1,59 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
+import 'package:senecard/services/user_cache_service.dart';
 
 class QrStorageService {
-  static QrStorageService? instance;
-  static const String USER_QR_KEY = 'stored_user_qr';
-
-  QrStorageService._();
-
+  static QrStorageService? _instance;
+  final UserCacheService _cacheService;
+  
+  QrStorageService._(this._cacheService);
+  
   static Future<QrStorageService> initialize() async {
-    if (instance != null) return instance!;
-    instance = QrStorageService._();
-    return instance!;
+    if (_instance != null) return _instance!;
+    
+    try {
+      final cacheService = await UserCacheService.initialize();
+      _instance = QrStorageService._(cacheService);
+      return _instance!;
+    } catch (e) {
+      print('Error initializing QrStorageService: $e');
+      rethrow;
+    }
   }
 
   Future<String?> getStoredUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(USER_QR_KEY);
+    try {
+      final userId = await _cacheService.getCachedUserId();
+      print('Retrieved stored user ID: $userId');
+      return userId;
+    } catch (e) {
+      print('Error getting stored user ID: $e');
+      return null;
+    }
   }
 
   Future<void> storeUserId(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(USER_QR_KEY, userId);
+    try {
+      if (userId.isEmpty) {
+        print('Warning: Attempted to store empty userId');
+        return;
+      }
+      await _cacheService.cacheUserId(userId);
+      print('Stored user ID: $userId');
+    } catch (e) {
+      print('Error storing user ID: $e');
+      rethrow;
+    }
   }
 
   Future<void> clearStoredUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(USER_QR_KEY);
+    try {
+      await _cacheService.clearCache();
+      print('Cleared stored user ID');
+    } catch (e) {
+      print('Error clearing stored user ID: $e');
+      rethrow;
+    }
   }
 
+  Stream<String?> get userIdStream => _cacheService.userIdStream;
 }
