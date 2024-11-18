@@ -148,6 +148,16 @@ class _StoreElementState extends State<StoreElement> {
                           color: isOpen ? Colors.black : Colors.grey,
                         ),
                       ),
+                      if (!isOpen) ...[
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Closed',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

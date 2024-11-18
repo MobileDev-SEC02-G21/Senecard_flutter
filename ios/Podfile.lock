@@ -1181,7 +1181,7 @@ PODS:
   - firebase_core (3.6.0):
     - Firebase/CoreOnly (= 11.2.0)
     - Flutter
-  - firebase_storage (12.3.3):
+  - firebase_storage (12.3.4):
     - Firebase/Storage (= 11.2.0)
     - firebase_core
     - Flutter
@@ -1500,7 +1500,7 @@ SPEC CHECKSUMS:
   Firebase: 98e6bf5278170668a7983e12971a66b2cd57fc8c
   firebase_auth: 0c77e299a8f2d1c74d1b1f6b78b3d4d802c19f47
   firebase_core: 2bedc3136ec7c7b8561c6123ed0239387b53f2af
-  firebase_storage: 65d4aea1e6a42b153b738412f7ac8b1c9bfa6206
+  firebase_storage: cee0d3d2e947db11289bbb57ed73a447ea111ec1
   FirebaseAnalytics: c36efd5710c60c17558650fa58c2066eca7e9265
   FirebaseAppCheckInterop: 7789a8adfb09e905ce02a76540b94b059029ea81
   FirebaseAuth: 2a198b8cdbbbd457f08d74df7040feb0a0e7777a

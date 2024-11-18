@@ -8,13 +8,20 @@ class AdsPageViewmodel extends ChangeNotifier {
   final List<Store> stores;
   final List<Advertisement> ads;
   String? _selectedCategory;
+
   AdsPageViewmodel({required this.stores, required this.ads});
+
+  String? get selectedCategory => _selectedCategory;
+
+  void setSelectedCategory(String category) {
+    _selectedCategory = category.isEmpty ? null : category;
+    notifyListeners();
+  }
 
   List<AdvertisementElement> getAdvertisements() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     var filteredAds = List<Advertisement>.from(ads);
 
-    // Aplicar filtro de categoría si existe
     if (_selectedCategory != null) {
       final storesInCategory = stores
           .where((store) => 
@@ -39,7 +46,7 @@ class AdsPageViewmodel extends ChangeNotifier {
           }
 
           return AdvertisementElement(
-            key: ValueKey('advert_${ad.id}_${entry.key}_${timestamp}'),
+            key: ValueKey('advert_${ad.id}_${entry.key}_$timestamp'),
             id: ad.id,
             image: ad.image,
             startDate: ad.startDate,
@@ -55,15 +62,12 @@ class AdsPageViewmodel extends ChangeNotifier {
         .toList();
   }
 
-  Widget getCategories(List<Store> stores) {
+  Widget getCategories() {
     var categories = stores.map((store) => store.category).toSet().toList();
-    return HorizontalScrollableList(categories: categories);
-  }
-
-  List<Store> filterAdsByCategory(String category) {
-    return stores
-        .where(
-            (store) => store.category.toLowerCase() == category.toLowerCase())
-        .toList();
+    return HorizontalScrollableList(
+      categories: categories,
+      selectedCategory: _selectedCategory,
+      onCategorySelected: setSelectedCategory,
+    );
   }
 }
