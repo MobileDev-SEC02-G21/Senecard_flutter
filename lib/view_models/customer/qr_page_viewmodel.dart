@@ -1,3 +1,4 @@
+// lib/view_models/customer/qr_page_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
@@ -8,31 +9,36 @@ class QrPageViewModel extends ChangeNotifier {
   final ConnectivityService _connectivityService = ConnectivityService();
   final QRAnalyticsService _analyticsService = QRAnalyticsService();
   late final QrStorageService _qrStorageService;
+  
+  bool _isInitialized = false;
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
   String? _storedUserId;
 
+  bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
   String? get storedUserId => _storedUserId;
 
-
   QrPageViewModel({required this.userId}) {
+    print('Initializing QrPageViewModel with userId: $userId'); // Debug log
     _initializeServices();
   }
 
-   Future<void> _initializeServices() async {
+  Future<void> _initializeServices() async {
     try {
-      // Inicializar el servicio si no existe
       _qrStorageService = await QrStorageService.initialize();
       await _initializeQR();
+      _isInitialized = true;
+      notifyListeners();
     } catch (e) {
       print('Error initializing services: $e');
       _hasError = true;
       _errorMessage = 'Error initializing services';
       _isLoading = false;
+      _isInitialized = true;
       notifyListeners();
     }
   }
@@ -44,11 +50,13 @@ class QrPageViewModel extends ChangeNotifier {
       _errorMessage = '';
       notifyListeners();
 
-      // Verificar si ya existe un userId almacenado
+      if (userId.isEmpty) {
+        throw Exception('Invalid userId provided');
+      }
+
       _storedUserId = await _qrStorageService.getStoredUserId();
       
-      // Si no existe, verificar conectividad antes de guardar
-      if (_storedUserId == null) {
+      if (_storedUserId == null || _storedUserId != userId) {
         final hasInternet = await _connectivityService.hasInternetConnection();
         
         if (!hasInternet) {
@@ -61,6 +69,7 @@ class QrPageViewModel extends ChangeNotifier {
 
         await _qrStorageService.storeUserId(userId);
         _storedUserId = userId;
+        print('Updated stored userId to: $userId'); // Debug log
       }
 
       _isLoading = false;
@@ -103,7 +112,7 @@ class QrPageViewModel extends ChangeNotifier {
         renderTimeMs: renderTimeMs,
       );
       
-      print('Logged QR render time: $renderTimeMs ms');
+      print('Logged QR render time: $renderTimeMs ms for user: $userId');
     } catch (e) {
       print('Error logging QR render time: $e');
     }
