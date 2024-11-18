@@ -4,7 +4,6 @@ import 'package:senecard/services/profile_storage_service.dart';
 import 'package:senecard/view_models/customer/profile_viewmodel.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 
-
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -80,6 +79,25 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
+  Widget _buildOfflineBanner() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      color: Colors.orange.shade100,
+      child: const Row(
+        children: [
+          Icon(Icons.wifi_off, color: Colors.orange),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Offline mode - Showing cached profile data',
+              style: TextStyle(color: Colors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfileViewModel>(
@@ -88,7 +106,57 @@ class _ProfileContentState extends State<ProfileContent> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (!viewModel.isOnline) {
+        if (!viewModel.isOnline && !viewModel.isEditing) {
+          return Column(
+            children: [
+              _buildOfflineBanner(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Profile Information',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'This is you (Offline)',
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildInfoItem('NAME', viewModel.name, Icons.person_outline),
+                      _buildInfoItem('EMAIL', viewModel.email, Icons.email_outlined),
+                      _buildInfoItem(
+                          'PHONE NUMBER', viewModel.phone, Icons.phone_outlined),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: null, // Deshabilitado en modo offline
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                          child: const Text('EDIT (Disabled in offline mode)'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        // Si estamos editando y perdemos conexión, mostrar el modo actual
+        if (!viewModel.isOnline && viewModel.isEditing) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -316,14 +384,12 @@ class _ProfileContentState extends State<ProfileContent> {
             controller: controller,
             keyboardType: keyboardType,
             onChanged: (value) {
-              // Solo limpiamos los espacios múltiples si existen
               if (label == 'NAME' && value.contains(RegExp(r'\s{2,}'))) {
                 final cursorPos = controller.selection;
                 final cleanedValue = value.replaceAll(RegExp(r'\s{2,}'), ' ');
 
                 if (cleanedValue != value) {
                   controller.text = cleanedValue;
-                  // Ajustamos la posición del cursor
                   final newCursorPos = cursorPos.baseOffset -
                       (value.length - cleanedValue.length);
                   controller.selection = TextSelection.fromPosition(
