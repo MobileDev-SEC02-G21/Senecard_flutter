@@ -64,13 +64,15 @@ class _RegisterPageState extends State<RegisterPage> {
   void controllerListener() {
     final name = nameController.text;
     final email = emailController.text;
+    final phone = phoneController.text;
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
 
-    if (name.isEmpty && email.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
+    if (name.isEmpty && email.isEmpty && phone.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.nameRegex.hasMatch(email) &&
+        AppRegex.phoneRegex.hasMatch(email) &&
+        AppRegex.passwordRegex.hasMatch(phone) &&
         AppRegex.passwordRegex.hasMatch(password) &&
         AppRegex.passwordRegex.hasMatch(confirmPassword)) {
       fieldValidNotifier.value = true;
@@ -309,9 +311,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (value) {
                     return value!.isEmpty
                         ? AppStrings.pleaseEnterName
-                        : AppConstants.nameRegex.hasMatch(value)
-                        ? AppStrings.invalidName
-                        : null;
+                        : (AppConstants.nameRegex.hasMatch(value)
+                        ? null: AppStrings.invalidName);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -334,9 +335,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (value) {
                     return value!.isEmpty
                         ? AppStrings.pleaseEnterEmailAddress
-                        : AppConstants.emailRegex.hasMatch(value)
+                        : (AppConstants.emailRegex.hasMatch(value)
                         ? null
-                        : AppStrings.invalidEmailAddress;
+                        : AppStrings.invalidEmailAddress);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -358,10 +359,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   onChanged: (_) => _formKey.currentState?.validate(),
                   validator: (value) {
                     return value!.isEmpty
-                        ? 'Please enter phone number'
-                        : value.length < 10
-                        ? 'Invalid phone number'
-                        : null;
+                        ? AppStrings.pleaseEnterPhone
+                        : (AppConstants.phoneRegex.hasMatch(value)
+                        ? null: AppStrings.invalidName);
                   },
                 ),
                 const SizedBox(height: 20),

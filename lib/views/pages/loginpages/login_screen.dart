@@ -357,7 +357,7 @@ class _LoginPageState extends State<LoginPage> {
                               ? "Please, Enter Password"
                               : AppRegex.passwordRegex.hasMatch(value)
                               ? null
-                              : "La contraseña debe tener:\n- Una letra mayúscula\n- Una letra minúscula\n- Un número\n- Un carácter especial (@, #, !, %, *, ?, &, _)";
+                              : "";
                         },
                       );
                     },
