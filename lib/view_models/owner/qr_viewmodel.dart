@@ -17,23 +17,41 @@ class QrViewModel extends ChangeNotifier {
       Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
       String name = userData['name'] ?? 'Unknown';
 
-      // Obtener la cantidad de loyaltyCards que tiene el usuario en esa tienda
+      // Obtener las tarjetas de lealtad del usuario en esta tienda
       QuerySnapshot loyaltyCardsSnapshot = await _firestore
           .collection('loyaltyCards')
           .where('uniandesMemberId', isEqualTo: userId)
           .where('storeId', isEqualTo: storeId)
           .get();
 
-      // Contar la cantidad de tarjetas de lealtad (cardsRedeemed)
-      int cardsRedeemed = loyaltyCardsSnapshot.size;
-
+      // Si no se encuentra ninguna tarjeta, crear una nueva
       if (loyaltyCardsSnapshot.docs.isEmpty) {
-        throw Exception("No loyalty card found for this user and store");
+        print("No loyalty card found. Creating a new one for userId: $userId, storeId: $storeId");
+
+        DocumentReference newCardRef = await _firestore.collection('loyaltyCards').add({
+          'isCurrent': true,
+          'maxPoints': 10,
+          'points': 0,
+          'storeId': storeId,
+          'uniandesMemberId': userId,
+        });
+
+        print("New loyalty card created with ID: ${newCardRef.id}");
+
+        // Retornar la información de la nueva tarjeta
+        return {
+          'name': name,
+          'points': 5, // Puntos iniciales
+          'maxPoints': 10,
+          'cardsRedeemed': 0, // Nueva tarjeta, sin tarjetas redimidas
+          'canRedeem': false, // No puede redimir aún
+        };
       }
 
+      // Si se encuentra una tarjeta, continuar con el proceso normal
       DocumentSnapshot loyaltyCard = loyaltyCardsSnapshot.docs.first;
 
-      // Extraer los puntos y el máximo de puntos de la loyaltyCard
+      // Extraer los datos de la tarjeta encontrada
       Map<String, dynamic> loyaltyCardData = loyaltyCard.data() as Map<String, dynamic>;
       int points = loyaltyCardData['points'] ?? 0;
       int maxPoints = loyaltyCardData['maxPoints'] ?? 10;
@@ -43,7 +61,7 @@ class QrViewModel extends ChangeNotifier {
         'name': name,
         'points': points,
         'maxPoints': maxPoints,
-        'cardsRedeemed': cardsRedeemed,  // Agregar cardsRedeemed
+        'cardsRedeemed': loyaltyCardsSnapshot.size,
         'canRedeem': canRedeem,
       };
     } catch (e) {
@@ -51,6 +69,7 @@ class QrViewModel extends ChangeNotifier {
       throw e;
     }
   }
+
 
   Future<void> redeemLoyaltyCard(String userId, String storeId) async {
     try {
