@@ -8,8 +8,7 @@ import 'package:senecard/services/cache_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
 
 class MainPageViewmodel extends ChangeNotifier {
-
-  final String _userId = FirebaseAuthService().currentUserId??'';
+  final String _userId = FirebaseAuthService().currentUserId ?? '';
   String _screenWidget = 'offers-screen';
   bool _searchBarVisible = true;
   Icon _icon = const Icon(Icons.menu);
@@ -72,16 +71,16 @@ class MainPageViewmodel extends ChangeNotifier {
     try {
       print('Initializing services...');
       _cacheService = await CacheService.initialize();
-      
+
       // Configurar el listener de conectividad una sola vez
       _setupConnectivityListener();
-      
+
       // Inicializar datos
       await _initializeData();
-      
+
       // Configurar el timer de actualización de caché
       _startPeriodicCacheUpdate();
-      
+
       print('Services initialized successfully');
     } catch (e) {
       print('Error in _initializeServices: $e');
@@ -98,7 +97,8 @@ class MainPageViewmodel extends ChangeNotifier {
 
   void _setupConnectivityListener() {
     _connectivitySubscription?.cancel();
-    _connectivitySubscription = _connectivityService.onConnectivityChanged.listen(
+    _connectivitySubscription =
+        _connectivityService.onConnectivityChanged.listen(
       (hasConnectivity) async {
         final wasOffline = !_isOnline;
         _isOnline = hasConnectivity;
@@ -137,7 +137,7 @@ class MainPageViewmodel extends ChangeNotifier {
 
       await _cancelSubscriptions();
       await _setupStreamSubscriptions();
-      
+
       _isLoading = false;
       _hasError = false;
     } catch (e) {
@@ -269,4 +269,22 @@ class MainPageViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void switchLoyaltyCardsScreen() {
+    print('ViewModel: Switching to loyalty cards screen');
+    _screenWidget = 'loyalty-cards-screen';
+    _searchBarVisible = false;
+    _icon = const Icon(Icons.arrow_back_ios_new);
+    _buttonMenu = false;
+    print('ViewModel: Screen widget is now: $_screenWidget');
+    notifyListeners();
+  }
+
+  void switchProfileScreen() {
+    print('ViewModel: Switching to profile screen');
+    _screenWidget = 'profile-screen';
+    _searchBarVisible = false;
+    _icon = const Icon(Icons.arrow_back_ios_new);
+    _buttonMenu = false;
+    notifyListeners();
+  }
 }

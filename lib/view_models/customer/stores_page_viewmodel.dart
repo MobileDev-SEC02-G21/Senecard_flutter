@@ -10,6 +10,11 @@ class StoresPageViewmodel extends ChangeNotifier {
 
   String? get selectedCategory => _selectedCategory;
 
+  void setSelectedCategory(String category) {
+    _selectedCategory = category.isEmpty ? null : category;
+    notifyListeners();
+  }
+
   List<StoreElement> getStores() {
     var filteredStores = _selectedCategory != null
         ? stores.where((store) =>
@@ -31,9 +36,13 @@ class StoresPageViewmodel extends ChangeNotifier {
         .toList();
   }
 
-  Widget getCategories(List<Store> stores) {
+  Widget getCategories() {
     var categories = stores.map((store) => store.category).toSet().toList();
-    return HorizontalScrollableList(categories: categories);
+    return HorizontalScrollableList(
+      categories: categories,
+      selectedCategory: _selectedCategory,
+      onCategorySelected: setSelectedCategory,
+    );
   }
 
   List<Store> filterStoresByCategory(String category) {
