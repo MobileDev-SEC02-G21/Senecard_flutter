@@ -6,13 +6,16 @@ import 'package:senecard/services/FireStoreService.dart';
 import 'package:senecard/services/FirebaseAuthService.dart';
 import 'package:senecard/services/cache_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
+import 'package:senecard/views/pages/loginpages/introLogin.dart';
 
 class MainPageViewmodel extends ChangeNotifier {
-  final String _userId = FirebaseAuthService().currentUserId ?? '';
+  String _userId = FirebaseAuthService().currentUserId ?? '';
+  final FirebaseAuthService _authService = FirebaseAuthService();
   String _screenWidget = 'offers-screen';
   bool _searchBarVisible = true;
   Icon _icon = const Icon(Icons.menu);
   bool _buttonMenu = true;
+  bool get isAuthenticated => _authService.isAuthenticated;
 
   // Data
   List<Store> _stores = [];
@@ -49,6 +52,15 @@ class MainPageViewmodel extends ChangeNotifier {
   Timer? _periodicTimer;
 
   MainPageViewmodel() {
+    _userId = _authService.currentUserId ?? '';
+    if (!_authService.isAuthenticated) {
+      throw StateError('MainPageViewModel initialized without authentication');
+    }
+    if (_userId.isEmpty) {
+      print('Warning: MainPageViewModel initialized with empty userId');
+    } else {
+      print('MainPageViewModel initialized with userId: $_userId');
+    }
     _initializeOnce();
   }
 
@@ -286,5 +298,12 @@ class MainPageViewmodel extends ChangeNotifier {
     _icon = const Icon(Icons.arrow_back_ios_new);
     _buttonMenu = false;
     notifyListeners();
+  }
+
+  void handleAuthenticationLost(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const IntroScreen()),
+      (route) => false,
+    );
   }
 }

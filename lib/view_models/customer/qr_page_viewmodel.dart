@@ -1,4 +1,5 @@
 // lib/view_models/customer/qr_page_viewmodel.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
@@ -23,20 +24,22 @@ class QrPageViewModel extends ChangeNotifier {
   String? get storedUserId => _storedUserId;
 
   QrPageViewModel({required this.userId}) {
-    print('Initializing QrPageViewModel with userId: $userId'); // Debug log
-    _initializeServices();
+    print('QrPageViewModel constructor - userId: $userId');
+    initializeViewModel();
   }
 
-  Future<void> _initializeServices() async {
+  Future<void> initializeViewModel() async {
     try {
+      print('Initializing QrPageViewModel services');
       _qrStorageService = await QrStorageService.initialize();
       await _initializeQR();
       _isInitialized = true;
       notifyListeners();
+      print('QrPageViewModel initialization complete');
     } catch (e) {
-      print('Error initializing services: $e');
+      print('Error in QrPageViewModel initialization: $e');
       _hasError = true;
-      _errorMessage = 'Error initializing services';
+      _errorMessage = 'Error initializing QR services';
       _isLoading = false;
       _isInitialized = true;
       notifyListeners();
@@ -46,39 +49,29 @@ class QrPageViewModel extends ChangeNotifier {
   Future<void> _initializeQR() async {
     try {
       _isLoading = true;
-      _hasError = false;
-      _errorMessage = '';
       notifyListeners();
 
-      if (userId.isEmpty) {
-        throw Exception('Invalid userId provided');
-      }
-
+      print('Initializing QR for userId: $userId');
       _storedUserId = await _qrStorageService.getStoredUserId();
       
       if (_storedUserId == null || _storedUserId != userId) {
         final hasInternet = await _connectivityService.hasInternetConnection();
         
         if (!hasInternet) {
-          _hasError = true;
-          _errorMessage = 'No internet available to generate the QR code';
-          _isLoading = false;
-          notifyListeners();
-          return;
+          throw Exception('No internet connection available');
         }
 
         await _qrStorageService.storeUserId(userId);
         _storedUserId = userId;
-        print('Updated stored userId to: $userId'); // Debug log
+        print('Updated stored userId: $userId');
       }
 
       _isLoading = false;
       notifyListeners();
-
     } catch (e) {
-      print('Error initializing QR: $e');
+      print('Error in _initializeQR: $e');
       _hasError = true;
-      _errorMessage = 'Unexpected error occurred';
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
     }

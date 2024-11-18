@@ -32,6 +32,14 @@ class MainPage extends StatelessWidget {
 
     return Consumer<MainPageViewmodel>(
       builder: (context, viewModel, child) {
+        if (!viewModel.isAuthenticated) {
+          // Si no hay autenticación, redirigir al login
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            viewModel.handleAuthenticationLost(context);
+          });
+          return const Center(child: CircularProgressIndicator());
+        }
+
         print(
             'MainPage: Building with screenWidget: ${viewModel.screenWidget}');
         Widget screen = const OffersPage();

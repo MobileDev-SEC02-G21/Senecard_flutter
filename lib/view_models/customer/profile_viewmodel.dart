@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:senecard/services/connectivity_service.dart';
@@ -44,11 +45,16 @@ class ProfileViewModel extends ChangeNotifier {
     required this.userId,
     required ProfileStorageService storageService,
   }) : _storageService = storageService {
+    if (!FirebaseAuth.instance.currentUser!.uid.isNotEmpty ?? false) {
+      throw StateError('ProfileViewModel initialized without valid authentication');
+    }
     print('Initializing ProfileViewModel with userId: $userId');
     if (userId.isEmpty) {
       print('Warning: Empty userId provided to ProfileViewModel');
       _errorMessage = 'Invalid user session';
       _hasError = true;
+      _isLoading = false;
+      notifyListeners();
     } else {
       _initializeServices();
     }
@@ -105,22 +111,36 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadUserData() async {
+    if (userId.isEmpty) {
+      _errorMessage = 'No user ID available';
+      _hasError = true;
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
     try {
       _isLoading = true;
       notifyListeners();
 
       final userData = await _storageService.getProfile(userId);
       
-      _name = userData['name'] ?? '';
-      _email = userData['email'] ?? '';
-      _phone = userData['phone'] ?? '';
+      if (userData.isEmpty) {
+        _errorMessage = 'No user data found';
+        _hasError = true;
+      } else {
+        _name = userData['name'] ?? '';
+        _email = userData['email'] ?? '';
+        _phone = userData['phone'] ?? '';
+        _hasError = false;
+        _errorMessage = '';
+      }
 
-      _errorMessage = '';
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
       print('Error loading user data: $e');
       _errorMessage = 'Error loading user data';
+      _hasError = true;
+    } finally {
       _isLoading = false;
       notifyListeners();
     }

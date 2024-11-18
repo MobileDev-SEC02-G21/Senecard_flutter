@@ -15,7 +15,16 @@ class FirebaseAuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance; // Instancia de Firebase Storage
   // Obtener el ID del usuario actual
-  String? get currentUserId => _auth.currentUser?.uid;
+  String get currentUserId {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null || userId.isEmpty) {
+      throw StateError('No authenticated user found');
+    }
+    return userId;
+  }
+
+  bool get isAuthenticated => _auth.currentUser != null;
+  User? get currentUser => _auth.currentUser;
 
   // Método para registrar una tienda
   Future<DocumentReference> registerStore({
