@@ -9,8 +9,8 @@ import 'package:senecard/services/connectivity_service.dart';
 import 'package:senecard/views/pages/loginpages/introLogin.dart';
 
 class MainPageViewmodel extends ChangeNotifier {
-  String _userId = FirebaseAuthService().currentUserId ?? '';
   final FirebaseAuthService _authService = FirebaseAuthService();
+  late String _userId;
   String _screenWidget = 'offers-screen';
   bool _searchBarVisible = true;
   Icon _icon = const Icon(Icons.menu);
@@ -52,15 +52,6 @@ class MainPageViewmodel extends ChangeNotifier {
   Timer? _periodicTimer;
 
   MainPageViewmodel() {
-    _userId = _authService.currentUserId ?? '';
-    if (!_authService.isAuthenticated) {
-      throw StateError('MainPageViewModel initialized without authentication');
-    }
-    if (_userId.isEmpty) {
-      print('Warning: MainPageViewModel initialized with empty userId');
-    } else {
-      print('MainPageViewModel initialized with userId: $_userId');
-    }
     _initializeOnce();
   }
 
@@ -71,7 +62,7 @@ class MainPageViewmodel extends ChangeNotifier {
     try {
       _cacheService = await CacheService.initialize();
       await _initializeConnectivity();
-      await _initializeData();
+      await _handleUserChange();
       _startPeriodicCacheUpdate();
     } catch (e) {
       print('Error in initialization: $e');
@@ -79,20 +70,23 @@ class MainPageViewmodel extends ChangeNotifier {
     }
   }
 
+  Future<void> _handleUserChange() async {
+    _userId = _authService.currentUserId ?? '';
+    if (_userId.isEmpty) {
+      print('Warning: MainPageViewModel initialized with empty userId');
+    } else {
+      print('MainPageViewModel initialized with userId: $_userId');
+    }
+    await _initializeData();
+  }
+
   Future<void> _initializeServices() async {
     try {
       print('Initializing services...');
       _cacheService = await CacheService.initialize();
-
-      // Configurar el listener de conectividad una sola vez
       _setupConnectivityListener();
-
-      // Inicializar datos
       await _initializeData();
-
-      // Configurar el timer de actualización de caché
       _startPeriodicCacheUpdate();
-
       print('Services initialized successfully');
     } catch (e) {
       print('Error in _initializeServices: $e');
@@ -235,6 +229,13 @@ class MainPageViewmodel extends ChangeNotifier {
         await refreshData();
       }
     });
+  }
+
+  void updateUserId(String userId) {
+    _userId = userId;
+    print('Updated userId in MainPageViewmodel: $_userId');
+    _initializeData();
+    notifyListeners();
   }
 
   @override

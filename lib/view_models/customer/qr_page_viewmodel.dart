@@ -1,5 +1,4 @@
 // lib/view_models/customer/qr_page_viewmodel.dart
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -16,17 +17,18 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform
     );
+    if (FirebaseAuth.instance.currentUser != null) {
+      await FirebaseAuth.instance.signOut();
+    }
   } catch (e) {
     print('Firebase initialization error: $e');
   }
-
-  final mainViewModel = MainPageViewmodel();
-
+    
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(
-          value: mainViewModel,
+        ChangeNotifierProvider(
+          create: (_) => MainPageViewmodel(),
         ),
         ChangeNotifierProvider(
           create: (_) => OwnerPageViewModel(),
