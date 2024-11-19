@@ -1,49 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:senecard/models/advertisement.dart';  // Modelo del Advertisement
+import 'package:senecard/models/advertisement.dart'; // Modelo del Advertisement
 import 'package:senecard/services/FireStoreService.dart';
+import 'package:senecard/services/advertisement_cache_service.dart'; // Nuevo servicio de caché
 import 'package:firebase_storage/firebase_storage.dart'; // Importa Firebase Storage
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class AdvertisementViewModel extends ChangeNotifier {
-  final FirestoreService _firestoreService = FirestoreService();  // Instancia del servicio Firestore
-  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;  // Instancia de Firebase Storage
-  List<Advertisement> _advertisements = [];  // Lista de anuncios
+  final FirestoreService _firestoreService = FirestoreService(); // Instancia del servicio Firestore
+  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance; // Instancia de Firebase Storage
+  AdvertisementCacheService? _cacheService; // Servicio de caché
+  List<Advertisement> _advertisements = []; // Lista de anuncios
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  List<Advertisement> get advertisements => _advertisements;  // Getter para acceder a los anuncios
+  List<Advertisement> get advertisements => _advertisements; // Getter para acceder a los anuncios
 
   AdvertisementViewModel() {
-    // No llamamos a fetch aquí porque necesitamos el storeId
+    _initializeCacheService(); // Inicializamos el servicio de caché
+  }
+
+  Future<void> _initializeCacheService() async {
+    _cacheService = await AdvertisementCacheService.initialize();
+  }
+
+  Future<void> _ensureCacheServiceInitialized() async {
+    if (_cacheService == null) {
+      _cacheService = await AdvertisementCacheService.initialize();
+    }
   }
 
   // Método para escuchar los cambios en los anuncios filtrados por storeId
   void fetchAdvertisements(String storeId) async {
     _isLoading = true;
-    notifyListeners();
 
-    try {
-      // Cargar anuncios desde el caché si están disponibles
-      await _loadAdvertisementsFromCache();
+    // Usar Future.delayed para esperar que el árbol de widgets esté completamente construido
+    Future.delayed(Duration.zero, () async {
+      notifyListeners();
 
-      // Escuchamos al stream de anuncios desde Firestore filtrados por storeId
-      _firestoreService.getAdvertisementsByStore(storeId).listen((advertisementList) {
-        _advertisements = advertisementList;  // Actualizamos la lista local
+      try {
+        // Asegurar que _cacheService esté inicializado
+        await _ensureCacheServiceInitialized();
+
+        // Cargar anuncios desde el caché si están disponibles
+        await _loadAdvertisementsFromCache();
+
+        // Escuchar al stream de anuncios desde Firestore filtrados por storeId
+        _firestoreService.getAdvertisementsByStore(storeId).listen((advertisementList) async {
+          _advertisements = advertisementList; // Actualizamos la lista local
+          _isLoading = false;
+          notifyListeners(); // Notificamos los cambios para actualizar la vista
+
+          // Guardar anuncios en el caché
+          await _saveAdvertisementsToCache();
+          print('Fetched ${_advertisements.length} advertisements for store $storeId.');
+        });
+      } catch (e) {
         _isLoading = false;
-        notifyListeners();  // Notificamos los cambios para actualizar la vista
-
-        // Guardar anuncios en el caché
-        _saveAdvertisementsToCache();
-        print('Fetched ${_advertisements.length} advertisements for store $storeId.');
-      });
-    } catch (e) {
-      _isLoading = false;
-      print('Error fetching advertisements: $e');
-    }
+        print('Error fetching advertisements: $e');
+      }
+    });
   }
+
 
   // Método para crear un nuevo anuncio
   Future<void> createAdvertisement({
@@ -62,12 +80,12 @@ class AdvertisementViewModel extends ChangeNotifier {
       Advertisement newAd = Advertisement(
         id: '', // Se generará automáticamente al guardar en Firestore
         storeId: storeId,
-        title: description,  // Usamos la descripción como título
+        title: description, // Usamos la descripción como título
         description: description,
         image: imageUrl,
-        startDate: DateTime.now().toIso8601String(),  // Fecha actual
-        endDate: null,  // No definimos una fecha de fin por ahora
-        available: true,  // El anuncio está disponible por defecto
+        startDate: DateTime.now().toIso8601String(), // Fecha actual
+        endDate: null, // No definimos una fecha de fin por ahora
+        available: true, // El anuncio está disponible por defecto
       );
 
       // 3. Guardar el anuncio en Firestore
@@ -111,7 +129,7 @@ class AdvertisementViewModel extends ChangeNotifier {
       final advertisementId = _advertisements[index].id; // Obtener el ID del anuncio
       await _firestoreService.deleteAdvertisement(advertisementId); // Eliminar de Firestore
       _advertisements.removeAt(index); // Eliminar localmente de la lista
-      _saveAdvertisementsToCache(); // Actualizar caché
+      await _saveAdvertisementsToCache(); // Actualizar caché
       notifyListeners(); // Notificar los cambios
     } catch (e) {
       print('Error deleting advertisement: $e');
@@ -120,22 +138,27 @@ class AdvertisementViewModel extends ChangeNotifier {
 
   // Método para guardar los anuncios en el caché
   Future<void> _saveAdvertisementsToCache() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> adJsonList = _advertisements.map((ad) => jsonEncode(ad.toJson())).toList();
-    await prefs.setStringList('cachedAdvertisements', adJsonList);
-    print('Advertisements saved to cache.');
+    try {
+      await _ensureCacheServiceInitialized();
+      await _cacheService!.cacheAdvertisements(_advertisements);
+    } catch (e) {
+      print('Error saving advertisements to cache: $e');
+    }
   }
 
   // Método para cargar los anuncios desde el caché
   Future<void> _loadAdvertisementsFromCache() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? adJsonList = prefs.getStringList('cachedAdvertisements');
-
-    if (adJsonList != null) {
-      _advertisements = adJsonList.map((adJson) => Advertisement.fromJson(jsonDecode(adJson))).toList();
-      print('Loaded ${_advertisements.length} advertisements from cache.');
-      _isLoading = false;
-      notifyListeners();
+    try {
+      await _ensureCacheServiceInitialized();
+      final cachedAdvertisements = await _cacheService!.getCachedAdvertisements();
+      if (cachedAdvertisements.isNotEmpty) {
+        _advertisements = cachedAdvertisements;
+        print('Loaded ${_advertisements.length} advertisements from cache.');
+        _isLoading = false;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error loading advertisements from cache: $e');
     }
   }
 }

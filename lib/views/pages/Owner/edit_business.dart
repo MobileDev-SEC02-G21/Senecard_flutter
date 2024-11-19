@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String storeId; // Recibe el ID de la tienda
@@ -14,6 +16,35 @@ class EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController emailController = TextEditingController(text: '');
   final TextEditingController addressController = TextEditingController(text: '');
   final TextEditingController descriptionController = TextEditingController(text: '');
+
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Escuchar cambios en el estado de la conectividad
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        // Si no hay conexión, volver a la pantalla anterior
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection. Returning to the previous screen.')),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Cancelar la suscripción al estado de conectividad al salir de la pantalla
+    _connectivitySubscription.cancel();
+    nameController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
