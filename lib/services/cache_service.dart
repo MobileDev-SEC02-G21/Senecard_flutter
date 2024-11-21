@@ -8,7 +8,7 @@ class CacheService {
   static const String STORES_CACHE_KEY = 'cached_stores';
   static const String ADS_CACHE_KEY = 'cached_advertisements';
   static const String LAST_CACHE_TIME_KEY = 'last_cache_time';
-  static const Duration CACHE_DURATION = Duration(hours: 1);
+  static const Duration CACHE_DURATION = Duration(hours: 24);
 
   static CacheService? _instance;
   final SharedPreferences _prefs;
@@ -31,9 +31,11 @@ class CacheService {
   Future<void> cacheStores(List<Store> stores) async {
     try {
       print('Caching ${stores.length} stores...');
-      final storesData = stores
-          .map((store) => store.toFirestore()..['id'] = store.id)
-          .toList();
+      final storesData = stores.map((store) {
+        final storeMap = store.toFirestore();
+        storeMap['id'] = store.id;
+        storeMap['image_url'] = store.image;
+      }).toList();
       final encodedData = jsonEncode(storesData);
       await _prefs.setString(STORES_CACHE_KEY, encodedData);
       await _updateCacheTimestamp();
@@ -71,7 +73,10 @@ class CacheService {
       final List<dynamic> storesJson = jsonDecode(cachedData);
       final stores = storesJson.map((storeData) {
         final String id = storeData['id'] ?? '';
+        final String imageUrl = storeData['image_url'] ?? '';
         storeData.remove('id');
+        storeData.remove('image_url');
+         storeData['image'] = imageUrl;
         return Store.fromFirestore(storeData, id);
       }).toList();
 

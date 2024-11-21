@@ -18,46 +18,11 @@ class HorizontalTextCustom extends StatelessWidget {
     this.isLoading = false,
   });
 
-  void _showNoInternetToast(BuildContext context) {
-    final overlay = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).size.height * 0.1,
-        width: MediaQuery.of(context).size.width,
-        child: Material(
-          color: Colors.transparent,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: const Text(
-                'No internet connection available',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(overlay);
-    Future.delayed(const Duration(seconds: 3), () {
-      overlay.remove();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<MainPageViewmodel>(
       builder: (context, viewModel, child) {
         void handlePress() {
-          if (!viewModel.isOnline) {
-            _showNoInternetToast(context);
-            return;
-          }
-
           if (onPressed != null) {
             onPressed!();
           }
@@ -78,9 +43,10 @@ class HorizontalTextCustom extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  TextButton(
-                    onPressed: (isLoading || viewModel.isLoading) ? null : handlePress,
-                    child: Text(
+                  TextButton.icon(
+                    onPressed:
+                        (isLoading || viewModel.isLoading) ? null : handlePress,
+                    label: Text(
                       buttonText,
                       style: TextStyle(
                         fontSize: 16,
@@ -88,11 +54,7 @@ class HorizontalTextCustom extends StatelessWidget {
                             ? Colors.grey
                             : const Color.fromARGB(255, 0, 0, 0),
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  IconButton(
-                    onPressed: (isLoading || viewModel.isLoading) ? null : handlePress,
                     icon: Icon(
                       icon,
                       size: 24,
