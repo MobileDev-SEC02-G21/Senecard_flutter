@@ -1,11 +1,14 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:senecard/view_models/owner/advertisement_viewmodel.dart'; // Importa el ViewModel
+import 'package:senecard/views/pages/Owner/owner_page.dart';
+import 'package:senecard/view_models/owner/advertisement_viewmodel.dart';
 
 class CreateAdvertisementPage extends StatefulWidget {
-  final String storeId;  // Recibe el ID de la tienda
+  final String storeId; // Recibe el ID de la tienda
 
   const CreateAdvertisementPage({super.key, required this.storeId});
 
@@ -16,6 +19,36 @@ class CreateAdvertisementPage extends StatefulWidget {
 class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   File? _image;
   final TextEditingController _descriptionController = TextEditingController(); // Controlador para la descripción
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Escuchar cambios en el estado de la conectividad
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        // Si no hay conexión, redirigir a la pantalla de OwnerPage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OwnerPage(storeId: widget.storeId),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection. Returning to Owner Page.')),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Cancelar la suscripción al estado de conectividad
+    _connectivitySubscription.cancel();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   // Función para obtener la imagen desde la galería
   Future<void> _pickImage() async {
@@ -41,9 +74,9 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
 
     // Llamamos al ViewModel para crear el anuncio con la imagen y la descripción
     advertisementViewModel.createAdvertisement(
-      storeId: widget.storeId,  // Pasamos el storeId desde el widget
-      description: _descriptionController.text,  // Descripción del anuncio
-      image: _image!,  // Imagen del anuncio
+      storeId: widget.storeId, // Pasamos el storeId desde el widget
+      description: _descriptionController.text, // Descripción del anuncio
+      image: _image!, // Imagen del anuncio
     );
 
     // Mostrar mensaje de éxito y regresar
@@ -127,7 +160,7 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: TextField(
-                controller: _descriptionController,  // Controlador para capturar la descripción
+                controller: _descriptionController, // Controlador para capturar la descripción
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Enter description...',
@@ -141,7 +174,7 @@ class CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: _saveAdvertisement,  // Llamar a la función de guardar
+                  onPressed: _saveAdvertisement, // Llamar a la función de guardar
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0), // Aumenta el padding
