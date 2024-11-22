@@ -22,34 +22,59 @@ class StorePage extends StatelessWidget {
               final storeElements = storesViewModel.getStores();
               final categories = storesViewModel.getCategories();
 
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Categories",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const SizedBox(height: 10),
-                      categories,
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Stores",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const SizedBox(height: 10),
-                      storeElements.isEmpty
-                          ? const Center(child: Text('No stores available'))
-                          : StoreList(
-                              displayItems: storeElements,
-                              shorter: false,
+              return Column(
+                children: [
+                  // Banner de modo offline
+                  if (!mainViewModel.isOnline)
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.orange.shade100,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.wifi_off, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Offline mode - Showing cached stores',
+                              style: TextStyle(color: Colors.orange),
                             ),
-                      const SizedBox(height: 10),
-                    ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Categories",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 10),
+                            categories,
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Stores",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 10),
+                            storeElements.isEmpty
+                                ? const Center(child: Text('No stores available'))
+                                : StoreList(
+                                    displayItems: storeElements,
+                                    shorter: false,
+                                  ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               );
             },
           ),

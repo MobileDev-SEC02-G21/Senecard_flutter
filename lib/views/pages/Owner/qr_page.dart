@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:senecard/view_models/owner/qr_viewmodel.dart';
+import 'package:senecard/views/pages/Owner/owner_page.dart';
 import 'qr_response_page.dart';
 
 class QrScanPage extends StatefulWidget {
@@ -17,6 +20,28 @@ class QrScanPageState extends State<QrScanPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   String? qrCodeResult;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Escuchar cambios en el estado de la conectividad
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        // Si no hay conexión, redirigir a la pantalla de OwnerPage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OwnerPage(storeId: widget.storeId),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection. Returning to Owner Page.')),
+        );
+      }
+    });
+  }
 
   @override
   void reassemble() {
@@ -28,6 +53,8 @@ class QrScanPageState extends State<QrScanPage> {
 
   @override
   void dispose() {
+    // Cancelar la suscripción al estado de conectividad
+    _connectivitySubscription.cancel();
     controller?.dispose();
     super.dispose();
   }
@@ -36,7 +63,7 @@ class QrScanPageState extends State<QrScanPage> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
       setState(() {
-        qrCodeResult = scanData.code;  // Guarda el código escaneado (userId)
+        qrCodeResult = scanData.code; // Guarda el código escaneado (userId)
       });
 
       if (qrCodeResult != null) {
@@ -56,8 +83,8 @@ class QrScanPageState extends State<QrScanPage> {
                 currentStamps: qrInfo['points'],
                 maxStamps: qrInfo['maxPoints'],
                 canRedeem: qrInfo['canRedeem'],
-                userId: qrCodeResult!,  // Pasamos el userId a la página de respuesta
-                storeId: widget.storeId,  // Pasamos el storeId a la página de respuesta
+                userId: qrCodeResult!, // Pasamos el userId a la página de respuesta
+                storeId: widget.storeId, // Pasamos el storeId a la página de respuesta
               ),
             ),
           );
@@ -104,7 +131,6 @@ class QrScanPageState extends State<QrScanPage> {
               ),
             ),
             const SizedBox(height: 20),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0.0),
               child: SizedBox(

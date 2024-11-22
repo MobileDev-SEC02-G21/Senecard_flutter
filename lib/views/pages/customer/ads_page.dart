@@ -25,33 +25,60 @@ class AdsPage extends StatelessWidget {
               final adsElements = adsViewModel.getAdvertisements();
               final categories = adsViewModel.getCategories();
 
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Categories",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const SizedBox(height: 10),
-                      categories,
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Advertisements",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const SizedBox(height: 10),
-                      adsElements.isEmpty
-                          ? const Center(child: Text('No ads available'))
-                          : StoreList(
-                              displayItems: adsElements,
-                              shorter: false,
+              return Column(
+                children: [
+                  // Banner de modo offline
+                  if (!mainViewModel.isOnline)
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.orange.shade100,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.wifi_off, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Offline mode - Showing cached advertisements',
+                              style: TextStyle(color: Colors.orange),
                             ),
-                      const SizedBox(height: 10),
-                    ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            const Text(
+                              "Categories",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 10),
+                            categories,
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Advertisements",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 10),
+                            adsElements.isEmpty
+                                ? const Center(child: Text('No ads available'))
+                                : StoreList(
+                                    displayItems: adsElements,
+                                    shorter: false,
+                                  ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               );
             },
           ),

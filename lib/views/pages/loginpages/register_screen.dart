@@ -71,8 +71,8 @@ class _RegisterPageState extends State<RegisterPage> {
     if (name.isEmpty && email.isEmpty && phone.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.phoneRegex.hasMatch(email) &&
-        AppRegex.passwordRegex.hasMatch(phone) &&
+        AppRegex.phoneRegex.hasMatch(phone) &&
+        AppRegex.nameRegex.hasMatch(name) &&
         AppRegex.passwordRegex.hasMatch(password) &&
         AppRegex.passwordRegex.hasMatch(confirmPassword)) {
       fieldValidNotifier.value = true;

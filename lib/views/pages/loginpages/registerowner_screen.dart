@@ -70,7 +70,7 @@ class _RegisterownerPageState extends State<RegisterownerPage> {
     if (name.isEmpty && email.isEmpty && phone.isEmpty && password.isEmpty && confirmPassword.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.phoneRegex.hasMatch(password) &&
+        AppRegex.phoneRegex.hasMatch(phone) &&
         AppRegex.passwordRegex.hasMatch(password) &&
         AppRegex.passwordRegex.hasMatch(confirmPassword)) {
       fieldValidNotifier.value = true;

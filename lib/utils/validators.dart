@@ -7,6 +7,9 @@ class Validators {
     if (value.trim().length < 2) {
       return 'Name must be at least 2 characters';
     }
+    if (value.trim().length > 30) {
+      return 'Name cannot exceed 30 characters';
+    }
     if (value.contains(RegExp(r'\s{2,}'))) {
       return 'Name cannot contain consecutive spaces';
     }
@@ -31,14 +34,21 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Email cannot be empty';
     }
+
+    const validDomains = r'com|es|co|net|org|edu|gov|mil|int|biz|info|name|museum';
+
     final RegExp emailRegExp = RegExp(
-      r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+      r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+(\.[a-zA-Z]+)*\.(' + validDomains + r')$'
     );
+
     if (!emailRegExp.hasMatch(value.trim())) {
       return 'Please enter a valid email address';
     }
     if (value.contains(' ')) {
       return 'Email cannot contain spaces';
+    }
+    if (value.trim().length > 45) {
+      return 'Email cannot exceed 45 characters';
     }
 
     return null;

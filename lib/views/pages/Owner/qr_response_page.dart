@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/views/pages/Owner/owner_page.dart';
 import '../../../view_models/owner/qr_viewmodel.dart';  // Importa OwnerPage
 
-class QRResponsePage extends StatelessWidget {
-  final String customerName;  // Nombre del cliente
-  final int cardsRedeemed;  // Tarjetas canjeadas
-  final int currentStamps;  // Sellos actuales
-  final int maxStamps;  // Máximo de sellos posibles
-  final bool canRedeem;  // Indica si se puede canjear la tarjeta
-  final String userId;  // Id del usuario
-  final String storeId;  // Id de la tienda
+class QRResponsePage extends StatefulWidget {
+  final String customerName; // Nombre del cliente
+  final int cardsRedeemed; // Tarjetas canjeadas
+  final int currentStamps; // Sellos actuales
+  final int maxStamps; // Máximo de sellos posibles
+  final bool canRedeem; // Indica si se puede canjear la tarjeta
+  final String userId; // Id del usuario
+  final String storeId; // Id de la tienda
 
   const QRResponsePage({
     Key? key,
@@ -19,14 +21,49 @@ class QRResponsePage extends StatelessWidget {
     required this.currentStamps,
     required this.maxStamps,
     required this.canRedeem,
-    required this.userId,  // Añadimos el userId como parámetro requerido
-    required this.storeId,  // Añadimos storeId como parámetro requerido
+    required this.userId,
+    required this.storeId,
   }) : super(key: key);
+
+  @override
+  State<QRResponsePage> createState() => _QRResponsePageState();
+}
+
+class _QRResponsePageState extends State<QRResponsePage> {
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Escuchar cambios en el estado de la conectividad
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        // Si no hay conexión, redirigir a la pantalla de OwnerPage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OwnerPage(storeId: widget.storeId),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection. Returning to Owner Page.')),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Cancelar la suscripción al estado de conectividad
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),  // Fondo gris claro
+      backgroundColor: const Color(0xFFEFEFEF),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -36,7 +73,7 @@ class QRResponsePage extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => OwnerPage(storeId: storeId), // Pasa el storeId a la OwnerPage
+                builder: (context) => OwnerPage(storeId: widget.storeId),
               ),
             );
           },
@@ -55,7 +92,7 @@ class QRResponsePage extends StatelessWidget {
               const SizedBox(height: 30),
               // Caja del nombre del cliente con padding
               Padding(
-                padding: const EdgeInsets.all(10.0),  // Padding de 10
+                padding: const EdgeInsets.all(10.0),
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
@@ -63,7 +100,7 @@ class QRResponsePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    'Customer: $customerName',
+                    'Customer: ${widget.customerName}',
                     style: const TextStyle(
                       fontSize: 18,
                       color: Colors.white,
@@ -75,7 +112,7 @@ class QRResponsePage extends StatelessWidget {
               const SizedBox(height: 20),
               // Columna con tarjetas canjeadas y sellos actuales con padding
               Padding(
-                padding: const EdgeInsets.all(10.0),  // Padding de 10
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -85,7 +122,7 @@ class QRResponsePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '$cardsRedeemed',
+                      '${widget.cardsRedeemed}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -98,7 +135,7 @@ class QRResponsePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '$currentStamps/$maxStamps',
+                      '${widget.currentStamps}/${widget.maxStamps}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -108,24 +145,22 @@ class QRResponsePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              // Botón para hacer un sello (habilitado y naranja si canRedeem es false)
+              // Botón para hacer un sello
               ElevatedButton(
-                onPressed: currentStamps < maxStamps ? () async {
+                onPressed: widget.currentStamps < widget.maxStamps
+                    ? () async {
                   final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
-
-                  // Llamar a la función en el ViewModel y esperar que termine
-                  await qrViewModel.makeStamp(userId, storeId);
-
-                  // Redirigir a la página de OwnerPage después de añadir el sello
+                  await qrViewModel.makeStamp(widget.userId, widget.storeId);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => OwnerPage(storeId: storeId),
+                      builder: (context) => OwnerPage(storeId: widget.storeId),
                     ),
                   );
-                } : null,  // Habilitado si currentStamps < maxStamps
+                }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: canRedeem ? Colors.grey[300] : Colors.orange,  // Si canRedeem es false, color naranja
+                  backgroundColor: widget.canRedeem ? Colors.grey[300] : Colors.orange,
                   padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
                   minimumSize: const Size(double.infinity, 60),
                   shape: RoundedRectangleBorder(
@@ -141,36 +176,35 @@ class QRResponsePage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
               // Texto sobre la posibilidad de canjear la tarjeta
               Text(
-                currentStamps >= maxStamps ? 'IS AVAILABLE TO REDEEM A LOYALTY CARD' : 'NOT AVAILABLE TO REDEEM A LOYALTY CARD',
+                widget.currentStamps >= widget.maxStamps
+                    ? 'IS AVAILABLE TO REDEEM A LOYALTY CARD'
+                    : 'NOT AVAILABLE TO REDEEM A LOYALTY CARD',
                 style: TextStyle(
-                  color: currentStamps >= maxStamps ? Colors.green : Colors.grey,
+                  color: widget.currentStamps >= widget.maxStamps ? Colors.green : Colors.grey,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 20),
-              // Botón para canjear tarjeta de lealtad (habilitado cuando currentStamps == maxStamps)
+              // Botón para canjear tarjeta de lealtad
               ElevatedButton(
-                onPressed: currentStamps >= maxStamps ? () async {
+                onPressed: widget.currentStamps >= widget.maxStamps
+                    ? () async {
                   final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
-
-                  // Llamar a la función redeemLoyaltyCard en el ViewModel y esperar a que termine
-                  await qrViewModel.redeemLoyaltyCard(userId, storeId);
-
-                  // Redirigir a la página de OwnerPage después de canjear la tarjeta de lealtad
+                  await qrViewModel.redeemLoyaltyCard(widget.userId, widget.storeId);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => OwnerPage(storeId: storeId),
+                      builder: (context) => OwnerPage(storeId: widget.storeId),
                     ),
                   );
-                } : null,  // Habilitado solo cuando currentStamps == maxStamps
+                }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: currentStamps >= maxStamps ? Colors.green : Colors.grey[300],  // Verde si puede canjear
+                  backgroundColor: widget.currentStamps >= widget.maxStamps ? Colors.green : Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
                   minimumSize: const Size(double.infinity, 60),
                   shape: RoundedRectangleBorder(

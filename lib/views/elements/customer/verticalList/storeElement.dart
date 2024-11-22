@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
@@ -89,7 +90,7 @@ class _StoreElementState extends State<StoreElement> {
     super.dispose();
   }
 
-  double get effectiveRating => widget.rating ?? 0.0;
+  double get effectiveRating => double.parse((widget.rating ?? 0.0).toStringAsFixed(1));
 
   @override
   Widget build(BuildContext context) {
@@ -116,12 +117,23 @@ class _StoreElementState extends State<StoreElement> {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(widget.image),
-                    fit: BoxFit.cover,
-                  ),
                   borderRadius: BorderRadius.circular(100),
                   color: isOpen ? null : Colors.grey,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.image,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.store, color: Colors.grey),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.error),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -143,7 +155,7 @@ class _StoreElementState extends State<StoreElement> {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        effectiveRating.toString(),
+                        effectiveRating.toStringAsFixed(1),
                         style: TextStyle(
                           color: isOpen ? Colors.black : Colors.grey,
                         ),

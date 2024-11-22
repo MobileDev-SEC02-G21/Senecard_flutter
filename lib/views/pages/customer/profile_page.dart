@@ -27,9 +27,17 @@ class ProfilePage extends StatelessWidget {
               );
             }
 
+            final userId = mainViewModel.userId; // Obtener userId aquí
+            if (userId.isEmpty) {
+              print('Warning: Empty userId in ProfilePage');
+              return const Center(
+                child: Text('No user session found'),
+              );
+            }
+
             return ChangeNotifierProvider(
               create: (_) => ProfileViewModel(
-                userId: mainViewModel.userId,
+                userId: userId, // Usar el userId obtenido
                 storageService: snapshot.data!,
               ),
               child: const ProfileContent(),
@@ -130,10 +138,12 @@ class _ProfileContentState extends State<ProfileContent> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _buildInfoItem('NAME', viewModel.name, Icons.person_outline),
-                      _buildInfoItem('EMAIL', viewModel.email, Icons.email_outlined),
                       _buildInfoItem(
-                          'PHONE NUMBER', viewModel.phone, Icons.phone_outlined),
+                          'NAME', viewModel.name, Icons.person_outline),
+                      _buildInfoItem(
+                          'EMAIL', viewModel.email, Icons.email_outlined),
+                      _buildInfoItem('PHONE NUMBER', viewModel.phone,
+                          Icons.phone_outlined),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,

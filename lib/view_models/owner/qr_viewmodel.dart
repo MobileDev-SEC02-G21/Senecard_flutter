@@ -78,7 +78,7 @@ class QrViewModel extends ChangeNotifier {
           .collection('loyaltyCards')
           .where('uniandesMemberId', isEqualTo: userId)
           .where('storeId', isEqualTo: storeId)
-          .where('current', isEqualTo: true) // Asegurarse de que sea la tarjeta actual
+          .where('isCurrent', isEqualTo: true) // Asegurarse de que sea la tarjeta actual
           .limit(1)
           .get();
 
