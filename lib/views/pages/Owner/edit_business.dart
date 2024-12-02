@@ -1,53 +1,112 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:senecard/view_models/owner/edit_business_viewmodel.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final String storeId; // Recibe el ID de la tienda
+  final String storeId;
 
-  const EditProfilePage({super.key, required this.storeId}); // Modificar el constructor para recibir storeId
+  const EditProfilePage({super.key, required this.storeId});
 
   @override
   EditProfilePageState createState() => EditProfilePageState();
 }
 
 class EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController nameController = TextEditingController(text: '');
-  final TextEditingController emailController = TextEditingController(text: '');
-  final TextEditingController addressController = TextEditingController(text: '');
-  final TextEditingController descriptionController = TextEditingController(text: '');
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  File? _image;
+  bool _isDataLoaded = false; // Flag para evitar múltiples llamadas
 
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  late StreamSubscription<ConnectivityResult>? _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
 
-    // Escuchar cambios en el estado de la conectividad
+    // Escuchar cambios en el estado de conectividad
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       if (result == ConnectivityResult.none) {
-        // Si no hay conexión, volver a la pantalla anterior
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No internet connection. Returning to the previous screen.')),
+          const SnackBar(content: Text('No internet connection.')),
         );
       }
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isDataLoaded) {
+      final viewModel = Provider.of<EditBusinessViewModel>(context, listen: false);
+      viewModel.fetchStoreData(widget.storeId).then((_) {
+        setState(() {
+          nameController.text = viewModel.store?.name ?? '';
+          addressController.text = viewModel.store?.address ?? '';
+          _isDataLoaded = true;
+        });
+      });
+    }
+  }
+
+  @override
   void dispose() {
-    // Cancelar la suscripción al estado de conectividad al salir de la pantalla
-    _connectivitySubscription.cancel();
+    // Asegurar que la suscripción se haya inicializado antes de cancelarla
+    _connectivitySubscription?.cancel();
     nameController.dispose();
-    emailController.dispose();
     addressController.dispose();
-    descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path); // Actualizar la imagen seleccionada
+      });
+    }
+  }
+
+  void _saveChanges() async {
+    if (nameController.text.isEmpty || addressController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Business name and address cannot be empty.')),
+      );
+      return;
+    }
+
+    final viewModel = Provider.of<EditBusinessViewModel>(context, listen: false);
+    await viewModel.updateBusiness(
+      widget.storeId,
+      name: nameController.text,
+      address: addressController.text,
+      image: _image,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Business updated successfully!')),
+    );
+    Navigator.pop(context);
+  }
+
+  void _deleteBusiness() async {
+    final viewModel = Provider.of<EditBusinessViewModel>(context, listen: false);
+    await viewModel.deleteBusiness(widget.storeId);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Business deleted successfully!')),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<EditBusinessViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -56,58 +115,45 @@ class EditProfilePageState extends State<EditProfilePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Volver a la pantalla anterior
+            Navigator.pop(context);
           },
         ),
         title: const Text(
-          'Edit Profile',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-          ),
+          'Edit Business',
+          style: TextStyle(fontSize: 18, color: Colors.black),
         ),
       ),
-      body: Padding(
+      body: viewModel.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView( // Permitir desplazamiento
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            // Foto de perfil editable
+            // Foto del negocio editable
             Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.orange[100],
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
-                    ),
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    shape: BoxShape.circle,
+                    image: _image != null
+                        ? DecorationImage(image: FileImage(_image!), fit: BoxFit.cover)
+                        : viewModel.store?.image.isNotEmpty == true
+                        ? DecorationImage(
+                      image: NetworkImage(viewModel.store!.image),
+                      fit: BoxFit.cover,
+                    )
+                        : null,
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        // Acción para cambiar la imagen de perfil
-                      },
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.orange,
-                          shape: BoxShape.circle,
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  child: (_image == null && (viewModel.store?.image.isEmpty ?? true))
+                      ? const Icon(Icons.camera_alt, size: 50, color: Colors.black54)
+                      : null,
+                ),
               ),
             ),
             const SizedBox(height: 30),
@@ -116,37 +162,45 @@ class EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 5),
             _buildTextField(nameController),
             const SizedBox(height: 20),
-            // Campo: Email
-            const Text('EMAIL', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            _buildTextField(emailController),
-            const SizedBox(height: 20),
             // Campo: Address
             const Text('ADDRESS', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 5),
             _buildTextField(addressController),
-            const SizedBox(height: 20),
-            // Campo: Description
-            const Text('DESCRIPTION', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            _buildTextField(descriptionController, maxLines: 3),
-            const Spacer(),
-            // Botón: Save
+            const SizedBox(height: 30),
+            // Botón para eliminar el negocio
             ElevatedButton(
-              onPressed: () {
-                // Acción al guardar los cambios
-                print('Store ID: ${widget.storeId}'); // Usar el storeId si es necesario
-              },
+              onPressed: _deleteBusiness,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: Colors.red,
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
-                minimumSize: const Size(double.infinity, 50), // Botón de ancho completo
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: const Text(
-                'SAVE',
+                'DELETE BUSINESS',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Botón para guardar cambios
+            ElevatedButton(
+              onPressed: _saveChanges,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'SAVE CHANGES',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -161,8 +215,7 @@ class EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Método para construir los campos de texto
-  Widget _buildTextField(TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildTextField(TextEditingController controller) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       decoration: BoxDecoration(
@@ -171,7 +224,6 @@ class EditProfilePageState extends State<EditProfilePage> {
       ),
       child: TextField(
         controller: controller,
-        maxLines: maxLines,
         decoration: const InputDecoration(
           border: InputBorder.none,
         ),

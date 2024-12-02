@@ -43,4 +43,24 @@ class Store {
       'schedule': schedule,
     };
   }
+
+  Store copyWith({
+    String? name,
+    String? address,
+    String? category,
+    double? rating,
+    String? image,
+    Map<String, dynamic>? schedule,
+  }) {
+    return Store(
+      id: id,
+      name: name ?? this.name,
+      address: address ?? this.address,
+      category: category ?? this.category,
+      rating: rating ?? this.rating,
+      image: image ?? this.image,
+      businessOwnerId: businessOwnerId,
+      schedule: schedule ?? this.schedule,
+    );
+  }
 }

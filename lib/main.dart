@@ -8,6 +8,7 @@ import 'package:senecard/firebase_options.dart';
 import 'package:senecard/services/notifications_service.dart';
 import 'package:senecard/services/user_preferences_service.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
+import 'package:senecard/view_models/owner/edit_business_viewmodel.dart';
 import 'package:senecard/view_models/customer/settings_viewmodel.dart';
 import 'package:senecard/view_models/owner/owner_page_vm.dart';
 import 'package:senecard/views/pages/senecard.dart';
@@ -52,6 +53,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => AdvertisementViewModel()),
           ChangeNotifierProvider(create: (_) => BusinessInfoViewModel()),
           ChangeNotifierProvider(create: (_) => QrViewModel()),
+          ChangeNotifierProvider(create: (_) => EditBusinessViewModel()),
           ChangeNotifierProvider(
             create: (_) => SettingsViewModel(
               userRole: 'uniandesMember',
