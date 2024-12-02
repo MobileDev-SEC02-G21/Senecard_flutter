@@ -26,16 +26,24 @@ class _BusinessInfoPageState extends State<BusinessInfoPage> {
   Future<void> _checkConnectivityAndNavigateToEdit() async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult != ConnectivityResult.none) {
-      Navigator.push(
+      // Navegar a EditProfilePage y esperar el resultado
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => EditProfilePage(storeId: widget.storeId),
         ),
       );
+
+      // Si el resultado indica que hubo un cambio, actualiza los datos
+      if (result == true) {
+        final businessInfoViewModel = Provider.of<BusinessInfoViewModel>(context, listen: false);
+        businessInfoViewModel.fetchStoreData(widget.storeId);
+      }
     } else {
       _showNoConnectivityDialog();
     }
   }
+
 
   void _showNoConnectivityDialog() {
     showDialog(

@@ -16,20 +16,20 @@ class QrScanPage extends StatefulWidget {
   QrScanPageState createState() => QrScanPageState();
 }
 
-class QrScanPageState extends State<QrScanPage> {
+class QrScanPageState extends State<QrScanPage> with WidgetsBindingObserver {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   String? qrCodeResult;
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
-    // Escuchar cambios en el estado de la conectividad
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       if (result == ConnectivityResult.none) {
-        // Si no hay conexión, redirigir a la pantalla de OwnerPage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -44,16 +44,25 @@ class QrScanPageState extends State<QrScanPage> {
   }
 
   @override
-  void reassemble() {
-    super.reassemble();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     if (controller != null) {
-      controller!.pauseCamera();
+      if (state == AppLifecycleState.paused) {
+        controller!.pauseCamera();
+      } else if (state == AppLifecycleState.resumed) {
+        controller!.resumeCamera();
+      }
     }
   }
 
   @override
+  void reassemble() {
+    super.reassemble();
+    controller?.pauseCamera();
+  }
+
+  @override
   void dispose() {
-    // Cancelar la suscripción al estado de conectividad
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription.cancel();
     controller?.dispose();
     super.dispose();
@@ -62,17 +71,18 @@ class QrScanPageState extends State<QrScanPage> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
-      setState(() {
-        qrCodeResult = scanData.code; // Guarda el código escaneado (userId)
-      });
+      if (_isProcessing) return;
+      _isProcessing = true;
+
+      qrCodeResult = scanData.code;
 
       if (qrCodeResult != null) {
-        // Obtén el ViewModel
         final qrViewModel = Provider.of<QrViewModel>(context, listen: false);
         try {
           // Llama a la función del ViewModel para obtener la información del QR, pasando el storeId y el userId (qrCodeResult)
           final qrInfo = await qrViewModel.getQrInfo(qrCodeResult!, widget.storeId);
 
+          if (!mounted) return;
           // Redirecciona automáticamente a QRResponsePage con los datos obtenidos, el userId y el storeId
           Navigator.pushReplacement(
             context,
@@ -90,7 +100,11 @@ class QrScanPageState extends State<QrScanPage> {
           );
         } catch (e) {
           print('Error obteniendo la información del QR: $e');
+        } finally {
+          _isProcessing = false;
         }
+      } else {
+        _isProcessing = false;
       }
     });
   }
@@ -126,7 +140,7 @@ class QrScanPageState extends State<QrScanPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Texto blanco
+                  color: Colors.white,
                 ),
               ),
             ),
