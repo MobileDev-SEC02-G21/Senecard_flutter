@@ -1,5 +1,6 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:senecard/models/store.dart';
 import 'package:senecard/models/advertisement.dart';
@@ -7,20 +8,18 @@ import 'package:senecard/models/advertisement.dart';
 class CacheService {
   static const String STORES_CACHE_KEY = 'cached_stores';
   static const String ADS_CACHE_KEY = 'cached_advertisements';
-  static const String LAST_CACHE_TIME_KEY = 'last_cache_time';
-  static const Duration CACHE_DURATION = Duration(hours: 24);
+  static const Duration CACHE_DURATION = Duration(days: 1);
 
   static CacheService? _instance;
-  final SharedPreferences _prefs;
+  final DefaultCacheManager _cacheManager;
 
-  CacheService._(this._prefs);
+  CacheService._() : _cacheManager = DefaultCacheManager();
 
   static Future<CacheService> initialize() async {
     if (_instance != null) return _instance!;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _instance = CacheService._(prefs);
+      _instance = CacheService._();
       return _instance!;
     } catch (e) {
       print('Error initializing CacheService: $e');
@@ -34,11 +33,18 @@ class CacheService {
       final storesData = stores.map((store) {
         final storeMap = store.toFirestore();
         storeMap['id'] = store.id;
-        storeMap['image_url'] = store.image;
+        return storeMap;
       }).toList();
+      
       final encodedData = jsonEncode(storesData);
-      await _prefs.setString(STORES_CACHE_KEY, encodedData);
-      await _updateCacheTimestamp();
+      final bytes = Uint8List.fromList(encodedData.codeUnits);
+      
+      await _cacheManager.putFile(
+        STORES_CACHE_KEY,
+        bytes,
+        key: STORES_CACHE_KEY,
+        maxAge: CACHE_DURATION,
+      );
       print('Stores cached successfully');
     } catch (e) {
       print('Error caching stores: $e');
@@ -48,13 +54,22 @@ class CacheService {
   Future<void> cacheAdvertisements(List<Advertisement> ads) async {
     try {
       print('Caching ${ads.length} advertisements...');
-      // Solo guardamos los anuncios disponibles
       final availableAds = ads.where((ad) => ad.available).toList();
-      final adsData =
-          availableAds.map((ad) => ad.toFirestore()..['id'] = ad.id).toList();
+      final adsData = availableAds.map((ad) {
+        final adMap = ad.toFirestore();
+        adMap['id'] = ad.id;
+        return adMap;
+      }).toList();
+      
       final encodedData = jsonEncode(adsData);
-      await _prefs.setString(ADS_CACHE_KEY, encodedData);
-      await _updateCacheTimestamp();
+      final bytes = Uint8List.fromList(encodedData.codeUnits);
+      
+      await _cacheManager.putFile(
+        ADS_CACHE_KEY,
+        bytes,
+        key: ADS_CACHE_KEY,
+        maxAge: CACHE_DURATION,
+      );
       print('Advertisements cached successfully');
     } catch (e) {
       print('Error caching advertisements: $e');
@@ -64,19 +79,25 @@ class CacheService {
   Future<List<Store>> getCachedStores() async {
     try {
       print('Getting cached stores...');
-      final String? cachedData = _prefs.getString(STORES_CACHE_KEY);
-      if (cachedData == null || cachedData.isEmpty) {
+      final fileInfo = await _cacheManager.getFileFromCache(STORES_CACHE_KEY);
+      
+      if (fileInfo == null) {
         print('No cached stores found');
         return [];
       }
 
-      final List<dynamic> storesJson = jsonDecode(cachedData);
+      if (fileInfo.validTill.isBefore(DateTime.now())) {
+        print('Cached stores expired');
+        await _cacheManager.removeFile(STORES_CACHE_KEY);
+        return [];
+      }
+
+      final cachedJson = await fileInfo.file.readAsString();
+      final List<dynamic> storesJson = jsonDecode(cachedJson);
+      
       final stores = storesJson.map((storeData) {
-        final String id = storeData['id'] ?? '';
-        final String imageUrl = storeData['image_url'] ?? '';
+        final String id = storeData['id'];
         storeData.remove('id');
-        storeData.remove('image_url');
-         storeData['image'] = imageUrl;
         return Store.fromFirestore(storeData, id);
       }).toList();
 
@@ -91,15 +112,24 @@ class CacheService {
   Future<List<Advertisement>> getCachedAdvertisements() async {
     try {
       print('Getting cached advertisements...');
-      final String? cachedData = _prefs.getString(ADS_CACHE_KEY);
-      if (cachedData == null || cachedData.isEmpty) {
+      final fileInfo = await _cacheManager.getFileFromCache(ADS_CACHE_KEY);
+      
+      if (fileInfo == null) {
         print('No cached advertisements found');
         return [];
       }
 
-      final List<dynamic> adsJson = jsonDecode(cachedData);
+      if (fileInfo.validTill.isBefore(DateTime.now())) {
+        print('Cached advertisements expired');
+        await _cacheManager.removeFile(ADS_CACHE_KEY);
+        return [];
+      }
+
+      final cachedJson = await fileInfo.file.readAsString();
+      final List<dynamic> adsJson = jsonDecode(cachedJson);
+      
       final ads = adsJson.map((adData) {
-        final String id = adData['id'] ?? '';
+        final String id = adData['id'];
         adData.remove('id');
         return Advertisement.fromFirestore(adData, id);
       }).toList();
@@ -109,15 +139,6 @@ class CacheService {
     } catch (e) {
       print('Error getting cached advertisements: $e');
       return [];
-    }
-  }
-
-  Future<void> _updateCacheTimestamp() async {
-    try {
-      await _prefs.setString(
-          LAST_CACHE_TIME_KEY, DateTime.now().toIso8601String());
-    } catch (e) {
-      print('Error updating cache timestamp: $e');
     }
   }
 
@@ -134,7 +155,7 @@ class CacheService {
   Future<void> clearCache() async {
     try {
       print('Clearing cache...');
-      await _prefs.clear();
+      await _cacheManager.emptyCache();
       print('Cache cleared successfully');
     } catch (e) {
       print('Error clearing cache: $e');

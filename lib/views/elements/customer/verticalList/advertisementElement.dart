@@ -16,21 +16,20 @@ class AdvertisementElement extends StatefulWidget {
   final String title;
   final Map<dynamic, dynamic> storeSchedule;
 
-  const AdvertisementElement(
-      {super.key,
-      required this.id,
-      required this.image,
-      required this.available,
-      this.endDate,
-      required this.startDate,
-      required this.storeId,
-      required this.title,
-      required this.storeSchedule});
+  const AdvertisementElement({
+    super.key,
+    required this.id,
+    required this.image,
+    required this.available,
+    this.endDate,
+    required this.startDate,
+    required this.storeId,
+    required this.title,
+    required this.storeSchedule,
+  });
 
   @override
-  State<StatefulWidget> createState() {
-    return _AdvertisementElementState();
-  }
+  State<StatefulWidget> createState() => _AdvertisementElementState();
 }
 
 class _AdvertisementElementState extends State<AdvertisementElement> {
@@ -98,12 +97,53 @@ class _AdvertisementElementState extends State<AdvertisementElement> {
     super.dispose();
   }
 
+  // Separar construcción de imagen para mejor manejo de memoria
+  Widget _buildImage() {
+    return CachedNetworkImage(
+      key: ValueKey('${widget.id}_image'),
+      imageUrl: widget.image,
+      fit: BoxFit.cover,
+      memCacheWidth: 400, // Limitar tamaño en memoria
+      memCacheHeight: 200,
+      maxWidthDiskCache: 800, // Limitar tamaño en disco
+      fadeInDuration: const Duration(milliseconds: 300),
+      placeholder: (context, url) => Container(
+        color: Colors.grey[200],
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: Colors.grey[200],
+        child: const Center(
+          child: Icon(Icons.error),
+        ),
+      ),
+      imageBuilder: (context, imageProvider) {
+        _isLoading = false;
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: imageProvider,
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        final mainViewModel =
-            Provider.of<MainPageViewmodel>(context, listen: false);
+        final mainViewModel = Provider.of<MainPageViewmodel>(context, listen: false);
         final store = mainViewModel.stores.firstWhere(
           (store) => store.id == widget.storeId,
           orElse: () => throw Exception('Store not found'),
@@ -112,6 +152,7 @@ class _AdvertisementElementState extends State<AdvertisementElement> {
           (ad) => ad.id == widget.id,
           orElse: () => throw Exception('Advertisement not found'),
         );
+        
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -132,33 +173,7 @@ class _AdvertisementElementState extends State<AdvertisementElement> {
                   minHeight: 200,
                   maxHeight: 200,
                 ),
-                child: CachedNetworkImage(
-                  imageUrl: widget.image,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: Icon(Icons.error),
-                    ),
-                  ),
-                  imageBuilder: (context, imageProvider) {
-                    _isLoading = false;
-                    return Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: imageProvider,
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                child: _buildImage(),
               ),
               if (!isStoreOpen)
                 Positioned.fill(
