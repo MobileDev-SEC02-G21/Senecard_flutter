@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/models/store.dart';
@@ -31,14 +32,15 @@ class StoreDetailPage extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back_ios_new),
                       style: IconButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 255, 122, 40),
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 122, 40),
                         foregroundColor: Colors.white,
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Title
                   const Text(
                     'Store Detail',
@@ -47,24 +49,36 @@ class StoreDetailPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Store Image
                   Container(
                     width: 120,
                     height: 120,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(store.image),
+                    ),
+                    child: ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: store.image,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.error),
+                        ),
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Store Name
                   Text(
                     store.name,
@@ -73,7 +87,7 @@ class StoreDetailPage extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
-                  
+
                   // Category
                   Text(
                     store.category,
@@ -82,9 +96,9 @@ class StoreDetailPage extends StatelessWidget {
                       color: Color.fromARGB(255, 255, 122, 40),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Rating Section
                   const Text(
                     'Rating',
@@ -101,9 +115,9 @@ class StoreDetailPage extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Address Section
                   const Text(
                     'Address',
@@ -120,9 +134,9 @@ class StoreDetailPage extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Schedule Section
                   const Text(
                     'Schedule',
@@ -136,13 +150,20 @@ class StoreDetailPage extends StatelessWidget {
                     builder: (context, viewModel, child) {
                       return Column(
                         children: [
-                          _buildScheduleItem(viewModel, 'Monday', store.schedule['monday']),
-                          _buildScheduleItem(viewModel, 'Tuesday', store.schedule['tuesday']),
-                          _buildScheduleItem(viewModel, 'Wednesday', store.schedule['wednesday']),
-                          _buildScheduleItem(viewModel, 'Thursday', store.schedule['thursday']),
-                          _buildScheduleItem(viewModel, 'Friday', store.schedule['friday']),
-                          _buildScheduleItem(viewModel, 'Saturday', store.schedule['saturday']),
-                          _buildScheduleItem(viewModel, 'Sunday', store.schedule['sunday']),
+                          _buildScheduleItem(
+                              viewModel, 'Monday', store.schedule['monday']),
+                          _buildScheduleItem(
+                              viewModel, 'Tuesday', store.schedule['tuesday']),
+                          _buildScheduleItem(viewModel, 'Wednesday',
+                              store.schedule['wednesday']),
+                          _buildScheduleItem(viewModel, 'Thursday',
+                              store.schedule['thursday']),
+                          _buildScheduleItem(
+                              viewModel, 'Friday', store.schedule['friday']),
+                          _buildScheduleItem(viewModel, 'Saturday',
+                              store.schedule['saturday']),
+                          _buildScheduleItem(
+                              viewModel, 'Sunday', store.schedule['sunday']),
                         ],
                       );
                     },
@@ -156,7 +177,8 @@ class StoreDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildScheduleItem(StoreDetailViewModel viewModel, String day, List<dynamic>? hours) {
+  Widget _buildScheduleItem(
+      StoreDetailViewModel viewModel, String day, List<dynamic>? hours) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(

@@ -24,7 +24,8 @@ class _QrPageState extends State<QrPage> {
   }
 
   void _initializeViewModel() {
-    final userId = Provider.of<MainPageViewmodel>(context, listen: false).userId;
+    final userId =
+        Provider.of<MainPageViewmodel>(context, listen: false).userId;
     print('Initializing QrPage with userId: $userId');
     _viewModel = QrPageViewModel(userId: userId);
     setState(() {});
@@ -49,7 +50,8 @@ class _QrPageState extends State<QrPage> {
     if (_startRenderTime != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final endRenderTime = DateTime.now();
-        final renderTimeMs = endRenderTime.difference(_startRenderTime!).inMilliseconds;
+        final renderTimeMs =
+            endRenderTime.difference(_startRenderTime!).inMilliseconds;
         _viewModel.logQRRenderTime(renderTimeMs);
         _startRenderTime = null;
       });
@@ -127,7 +129,7 @@ class _QrPageState extends State<QrPage> {
 
         final qrData = _viewModel.storedUserId ?? _viewModel.userId;
         print('Rendering QR code with data: $qrData');
-        return _buildQRCode(qrData);
+        return _viewModel.buildQRCode(qrData);
       },
     );
   }

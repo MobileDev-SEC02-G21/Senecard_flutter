@@ -16,7 +16,6 @@ class OffersPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Crear una instancia local del OffersPageViewModel
         final offersViewModel = OffersPageViewModel(
           stores: mainViewModel.stores,
           advertisements: mainViewModel.advertisements,
@@ -26,38 +25,57 @@ class OffersPage extends StatelessWidget {
         final storeElements = offersViewModel.getTopStores();
         final adElements = offersViewModel.getTopAdvertisements();
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              HorizontalTextCustom(
-                title: "Stores",
-                buttonText: "See All",
-                icon: Icons.arrow_forward_ios_rounded,
-                onPressed: mainViewModel.switchStoresScreen,
-              ),
-              storeElements.isEmpty
-                ? const Center(child: Text('No stores available'))
-                : StoreList(
-                    key: ValueKey('stores_${storeElements.length}'),
-                    displayItems: storeElements,
-                    shorter: true,
-                  ),
-              const SizedBox(height: 10),
-              HorizontalTextCustom(
-                title: "Advertisements",
-                buttonText: "See All",
-                icon: Icons.arrow_forward_ios_rounded,
-                onPressed: mainViewModel.switchAdvertisementScreen,
-              ),
-              adElements.isEmpty
-                ? const Center(child: Text('No advertisements available'))
-                : StoreList(
-                    key: ValueKey('ads_${adElements.length}'),
-                    displayItems: adElements,
-                    shorter: true,
-                  ),
-              const SizedBox(height: 20),
-            ],
+        return Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                HorizontalTextCustom(
+                  title: "Stores",
+                  buttonText: "See All",
+                  icon: Icons.arrow_forward_ios_rounded,
+                  onPressed: mainViewModel.switchStoresScreen,
+                ),
+                storeElements.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No stores available',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      )
+                    : StoreList(
+                        key: ValueKey('stores_${storeElements.length}'),
+                        displayItems: storeElements,
+                        shorter: true,
+                      ),
+                const SizedBox(height: 10),
+                HorizontalTextCustom(
+                  title: "Advertisements",
+                  buttonText: "See All",
+                  icon: Icons.arrow_forward_ios_rounded,
+                  onPressed: mainViewModel.switchAdvertisementScreen,
+                ),
+                adElements.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No advertisements available',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      )
+                    : StoreList(
+                        key: ValueKey('ads_${adElements.length}'),
+                        displayItems: adElements,
+                        shorter: true,
+                      ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },

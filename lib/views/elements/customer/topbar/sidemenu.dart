@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:senecard/services/profile_storage_service.dart';
 import 'package:senecard/services/qr_storage_service.dart';
+import 'package:senecard/services/user_preferences_service.dart';
+import 'package:senecard/utils/app_localizations.dart';
 import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 import 'package:senecard/views/pages/loginpages/introLogin.dart';
 
@@ -15,14 +17,14 @@ class SideMenuDrawer extends StatelessWidget {
           Provider.of<MainPageViewmodel>(context, listen: false).userId;
       final qrStorageService = await QrStorageService.initialize();
       final profileStorageService = await ProfileStorageService.initialize();
+      final userPreferencesService = await UserPreferencesService.initialize();
+
       await qrStorageService.clearStoredUserId();
       await profileStorageService.clearProfile(userId);
 
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const IntroScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const IntroScreen()),
           (route) => false,
         );
       }
@@ -30,9 +32,7 @@ class SideMenuDrawer extends StatelessWidget {
       print('Error during logout: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error logging out. Please try again.'),
-          ),
+          const SnackBar(content: Text('Error logging out. Please try again.')),
         );
       }
     }
@@ -40,23 +40,27 @@ class SideMenuDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     void onTap(String title) {
       print('SideMenu: onTap called with title: $title');
       Navigator.pop(context);
 
       switch (title) {
         case 'Home':
-          print('SideMenu: Switching to home screen');
           Provider.of<MainPageViewmodel>(context, listen: false).startOver();
           break;
         case 'Loyalty Cards':
-          print('SideMenu: Switching to loyalty cards screen');
           Provider.of<MainPageViewmodel>(context, listen: false)
               .switchLoyaltyCardsScreen();
           break;
         case 'Profile':
           Provider.of<MainPageViewmodel>(context, listen: false)
               .switchProfileScreen();
+          break;
+        case 'Settings':
+          Provider.of<MainPageViewmodel>(context, listen: false)
+              .switchSettingsScreen();
           break;
         case 'Log Out':
           _handleLogout(context);
@@ -78,9 +82,7 @@ class SideMenuDrawer extends StatelessWidget {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_sharp,
-                  ),
+                  icon: const Icon(Icons.arrow_back_ios_new_sharp),
                 ),
                 const Center(
                   child: Text(
@@ -101,16 +103,17 @@ class SideMenuDrawer extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color.fromRGBO(158, 158, 158, 0.5),
-                            spreadRadius: 3,
-                            blurRadius: 8,
-                            offset: Offset(1, 3),
-                          )
-                        ]),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color.fromRGBO(158, 158, 158, 0.5),
+                          spreadRadius: 3,
+                          blurRadius: 8,
+                          offset: Offset(1, 3),
+                        )
+                      ],
+                    ),
                     child: Text(item.title),
                   ),
                 ),
