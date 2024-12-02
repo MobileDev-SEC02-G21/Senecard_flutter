@@ -21,11 +21,12 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
     super.dispose();
   }
 
-  void _handleItemSelection(BuildContext context, SearchViewModel viewModel, dynamic item, SearchController controller) async {
+  void _handleItemSelection(BuildContext context, SearchViewModel viewModel,
+      dynamic item, SearchController controller) async {
     await viewModel.saveToHistory(controller.text);
     controller.clear();
     controller.closeView('');
-    
+
     if (viewModel.isStore(item)) {
       Navigator.push(
         context,
@@ -59,16 +60,20 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
           child: SearchAnchor(
             searchController: _searchController,
             viewElevation: 0,
-            viewBackgroundColor: Colors.white,
+            viewBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
             viewConstraints: const BoxConstraints(maxHeight: 400),
             builder: (BuildContext context, SearchController controller) {
               return SearchBar(
-                backgroundColor: const WidgetStatePropertyAll(
-                    Color.fromARGB(255, 240, 245, 250)),
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : const Color.fromARGB(255, 240, 245, 250),
+                ),
                 elevation: const WidgetStatePropertyAll(0),
                 controller: controller,
                 padding: const WidgetStatePropertyAll<EdgeInsets>(
-                    EdgeInsets.symmetric(horizontal: 16)),
+                  EdgeInsets.symmetric(horizontal: 16),
+                ),
                 onTap: () {
                   controller.openView();
                 },
@@ -81,7 +86,12 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
                     controller.clear();
                   }
                 },
-                leading: const Icon(Icons.search),
+                leading: Icon(
+                  Icons.search,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
               );
             },
             suggestionsBuilder: (context, controller) async {
@@ -92,23 +102,27 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
                   StatefulBuilder(
                     builder: (context, setState) {
                       return Column(
-                        children: viewModel.searchHistory.map((query) => ListTile(
-                          leading: const Icon(Icons.history),
-                          title: Text(query),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () async {
-                              await viewModel.removeFromHistory(query);
-                              setState(() {}); // Actualiza solo este widget
-                            },
-                          ),
-                          onTap: () {
-                            controller.text = query;
-                            controller.selection = TextSelection.fromPosition(
-                                TextPosition(offset: query.length));
-                            viewModel.searchOnly(query);
-                          },
-                        )).toList(),
+                        children: viewModel.searchHistory
+                            .map((query) => ListTile(
+                                  leading: const Icon(Icons.history),
+                                  title: Text(query),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () async {
+                                      await viewModel.removeFromHistory(query);
+                                      setState(
+                                          () {}); // Actualiza solo este widget
+                                    },
+                                  ),
+                                  onTap: () {
+                                    controller.text = query;
+                                    controller.selection =
+                                        TextSelection.fromPosition(
+                                            TextPosition(offset: query.length));
+                                    viewModel.searchOnly(query);
+                                  },
+                                ))
+                            .toList(),
                       );
                     },
                   )
@@ -117,7 +131,7 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
 
               return viewModel.searchResults.map((item) {
                 final isStore = viewModel.isStore(item);
-                
+
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundImage: CachedNetworkImageProvider(
@@ -130,7 +144,8 @@ class _SearchBarCustomState extends State<SearchBarCustom> {
                     isStore ? Icons.store : Icons.local_offer,
                     color: const Color.fromARGB(255, 255, 122, 40),
                   ),
-                  onTap: () => _handleItemSelection(context, viewModel, item, controller),
+                  onTap: () => _handleItemSelection(
+                      context, viewModel, item, controller),
                 );
               });
             },

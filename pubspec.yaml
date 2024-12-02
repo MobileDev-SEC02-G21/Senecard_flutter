@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_cache_manager: ^3.3.1
   image_picker: ^0.8.4+8
   firebase_storage: ^12.3.3  # Para Firebase Storage
@@ -44,6 +46,9 @@ dependencies:
   cached_network_image: ^3.3.1
   internet_connection_checker: ^1.0.0
   flutter_svg: ^2.0.9
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
+  flutter_phoenix: ^1.1.1
 
 
 

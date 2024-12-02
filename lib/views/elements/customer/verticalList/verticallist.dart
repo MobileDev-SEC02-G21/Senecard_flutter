@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
+
+import 'package:senecard/view_models/customer/main_page_viewmodel.dart';
 
 class StoreList extends StatefulWidget {
   final List<Widget> displayItems;
@@ -61,15 +64,18 @@ class _StoreListState extends State<StoreList> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'StoreList build called. DisplayItems length: ${displayItems.length}');
+    final mainViewModel = Provider.of<MainPageViewmodel>(context, listen: true);
+    print('StoreList build called. DisplayItems length: ${displayItems.length}');
+    
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Column(
-        children: displayItems.map((widget) {
-          print('Rendering widget in StoreList: ${widget.runtimeType}');
-          return widget;
-        }).toList(),
+        children: [
+          ...displayItems.map((widget) {
+            print('Rendering widget in StoreList: ${widget.runtimeType}');
+            return widget;
+          }),
+        ],
       ),
     );
   }
