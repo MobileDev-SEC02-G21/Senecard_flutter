@@ -1,5 +1,5 @@
-// lib/view_models/customer/qr_page_viewmodel.dart
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
 import 'package:senecard/services/qr_storage_service.dart';
@@ -15,7 +15,10 @@ class QrPageViewModel extends ChangeNotifier {
   bool _hasError = false;
   String _errorMessage = '';
   String? _storedUserId;
+  String? _lastQrData;
+  QrImageView? _cachedQrImage;
 
+  // Getters existentes
   bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
@@ -25,6 +28,33 @@ class QrPageViewModel extends ChangeNotifier {
   QrPageViewModel({required this.userId}) {
     print('QrPageViewModel constructor - userId: $userId');
     initializeViewModel();
+  }
+
+  Widget buildQRCode(String qrData) {
+    if (_cachedQrImage != null && _lastQrData == qrData) {
+      print('Returning cached QR code for data: $qrData');
+      return _cachedQrImage!;
+    }
+
+    print('Building new QR code for data: $qrData');
+    _lastQrData = qrData;
+    _cachedQrImage = QrImageView(
+      data: qrData,
+      version: QrVersions.auto,
+      size: 350.0,
+      eyeStyle: const QrEyeStyle(
+        eyeShape: QrEyeShape.square,
+        color: Color(0xFF000000),
+      ),
+      dataModuleStyle: const QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: Color(0xFF000000),
+      ),
+      backgroundColor: Colors.white,
+      gapless: true,
+    );
+
+    return _cachedQrImage!;
   }
 
   Future<void> initializeViewModel() async {
@@ -77,6 +107,9 @@ class QrPageViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshQR() async {
+    _cachedQrImage = null; // Limpiar el caché al refrescar
+    _lastQrData = null;
+    
     final hasInternet = await _connectivityService.hasInternetConnection();
     
     if (!hasInternet) {

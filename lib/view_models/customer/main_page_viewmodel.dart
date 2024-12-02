@@ -6,10 +6,12 @@ import 'package:senecard/services/FireStoreService.dart';
 import 'package:senecard/services/FirebaseAuthService.dart';
 import 'package:senecard/services/cache_service.dart';
 import 'package:senecard/services/connectivity_service.dart';
+import 'package:senecard/services/user_preferences_service.dart';
 import 'package:senecard/views/pages/loginpages/introLogin.dart';
 
 class MainPageViewmodel extends ChangeNotifier {
   final FirebaseAuthService _authService = FirebaseAuthService();
+  late final UserPreferencesService _preferencesService;
   late String _userId;
   String _screenWidget = 'offers-screen';
   bool _searchBarVisible = true;
@@ -50,6 +52,7 @@ class MainPageViewmodel extends ChangeNotifier {
   StreamSubscription? _storesSubscription;
   StreamSubscription? _advertisementsSubscription;
   Timer? _periodicTimer;
+  
 
   MainPageViewmodel() {
     _initializeOnce();
@@ -61,6 +64,7 @@ class MainPageViewmodel extends ChangeNotifier {
 
     try {
       _cacheService = await CacheService.initialize();
+      _preferencesService = await UserPreferencesService.initialize();
       await _initializeConnectivity();
       await _handleUserChange();
       _startPeriodicCacheUpdate();
@@ -301,10 +305,30 @@ class MainPageViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void switchSettingsScreen() {
+    print('ViewModel: Switching to settings screen');
+    _screenWidget = 'settings-screen';
+    _searchBarVisible = false;
+    _icon = const Icon(Icons.arrow_back_ios_new);
+    _buttonMenu = false;
+    notifyListeners();
+  }
+
   void handleAuthenticationLost(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const IntroScreen()),
       (route) => false,
     );
   }
+
+  Future<void> saveNavigationState() async {
+    if (userId.isNotEmpty) {
+      await _preferencesService.setShouldNavigateToMain(true);
+    }
+  }
+
+  Future<void> clearNavigationState() async {
+    await _preferencesService.setShouldNavigateToMain(false);
+  }
+
 }
