@@ -68,8 +68,16 @@ class SideMenuDrawer extends StatelessWidget {
       }
     }
 
+    final textColor = Theme.of(context).brightness == Brightness.dark 
+        ? Colors.white 
+        : Colors.black;
+
+    final boxColor = Theme.of(context).brightness == Brightness.dark 
+        ? const Color.fromARGB(255, 59, 59, 59) 
+        : Colors.white;
+
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 240, 245, 250),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -84,11 +92,11 @@ class SideMenuDrawer extends StatelessWidget {
                   },
                   icon: const Icon(Icons.arrow_back_ios_new_sharp),
                 ),
-                const Center(
+                Center(
                   child: Text(
                     'Options',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: textColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -103,7 +111,7 @@ class SideMenuDrawer extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: const [
                         BoxShadow(

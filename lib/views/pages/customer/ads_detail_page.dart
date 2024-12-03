@@ -25,7 +25,7 @@ class AdvertisementDetailPage extends StatelessWidget {
       child: Consumer<AdvertisementDetailViewModel>(
         builder: (context, viewModel, child) {
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: SafeArea(
               child: SingleChildScrollView(
                 child: Column(
@@ -40,7 +40,7 @@ class AdvertisementDetailPage extends StatelessWidget {
                         style: IconButton.styleFrom(
                           backgroundColor:
                               const Color.fromARGB(255, 255, 122, 40),
-                          foregroundColor: Colors.white,
+                          foregroundColor: Theme.of(context).scaffoldBackgroundColor,
                         ),
                       ),
                     ),

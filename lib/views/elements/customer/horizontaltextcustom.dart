@@ -18,6 +18,7 @@ class HorizontalTextCustom extends StatelessWidget {
     this.isLoading = false,
   });
 
+  
   @override
   Widget build(BuildContext context) {
     return Consumer<MainPageViewmodel>(
@@ -27,6 +28,9 @@ class HorizontalTextCustom extends StatelessWidget {
             onPressed!();
           }
         }
+        final textColor = Theme.of(context).brightness == Brightness.dark 
+          ? Colors.white 
+          : const Color.fromARGB(255, 0, 0, 0);
 
         return Padding(
           padding: const EdgeInsets.only(left: 25, right: 10),
@@ -52,7 +56,7 @@ class HorizontalTextCustom extends StatelessWidget {
                         fontSize: 16,
                         color: (isLoading || viewModel.isLoading)
                             ? Colors.grey
-                            : const Color.fromARGB(255, 0, 0, 0),
+                            : textColor,
                       ),
                     ),
                     icon: Icon(
@@ -60,7 +64,7 @@ class HorizontalTextCustom extends StatelessWidget {
                       size: 24,
                       color: (isLoading || viewModel.isLoading)
                           ? Colors.grey
-                          : const Color.fromARGB(255, 0, 0, 0),
+                          : textColor,
                     ),
                   ),
                 ],

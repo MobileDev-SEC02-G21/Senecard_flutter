@@ -24,6 +24,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark 
+        ? Colors.white 
+        : Colors.black;
+
     return PreferredSize(
       preferredSize: Size.fromHeight(height),
       child: Padding(
@@ -31,7 +35,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
         child: AppBar(
           title: Text(title),
           centerTitle: true,
-          titleTextStyle: const TextStyle(fontSize: 16, color: Colors.black),
+          titleTextStyle:  TextStyle(fontSize: 16, color: textColor),
           leading: IconButton(
             onPressed: () {
               buttonMenu ? Scaffold.of(context).openDrawer(): backHome();

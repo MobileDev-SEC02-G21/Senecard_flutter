@@ -94,6 +94,10 @@ class _StoreElementState extends State<StoreElement> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark 
+        ? Colors.white 
+        : Colors.black;
+
     return InkWell(
       onTap: () {
         final mainViewmodel =
@@ -144,7 +148,7 @@ class _StoreElementState extends State<StoreElement> {
                     widget.storeName,
                     style: TextStyle(
                       fontSize: 18,
-                      color: isOpen ? Colors.black : Colors.grey,
+                      color: isOpen ? textColor : Colors.grey,
                     ),
                   ),
                   Row(
@@ -157,7 +161,7 @@ class _StoreElementState extends State<StoreElement> {
                       Text(
                         effectiveRating.toStringAsFixed(1),
                         style: TextStyle(
-                          color: isOpen ? Colors.black : Colors.grey,
+                          color: isOpen ? textColor : Colors.grey,
                         ),
                       ),
                       if (!isOpen) ...[

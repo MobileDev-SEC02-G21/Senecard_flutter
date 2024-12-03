@@ -378,6 +378,8 @@ class _ProfileContentState extends State<ProfileContent> {
     void Function(String)? onChanged,
     TextInputType? keyboardType,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -385,14 +387,17 @@ class _ProfileContentState extends State<ProfileContent> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey,
               fontSize: 12,
             ),
           ),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+            ),
             onChanged: (value) {
               if (label == 'NAME' && value.contains(RegExp(r'\s{2,}'))) {
                 final cursorPos = controller.selection;
@@ -414,7 +419,7 @@ class _ProfileContentState extends State<ProfileContent> {
               }
             },
             decoration: InputDecoration(
-              fillColor: const Color(0xFFF5F8FF),
+              fillColor: isDark ? Colors.grey[800] : const Color(0xFFF5F8FF),
               filled: true,
               border: InputBorder.none,
               errorText: errorText,
