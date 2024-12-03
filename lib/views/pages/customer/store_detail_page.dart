@@ -17,7 +17,7 @@ class StoreDetailPage extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => StoreDetailViewModel(store: store),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(

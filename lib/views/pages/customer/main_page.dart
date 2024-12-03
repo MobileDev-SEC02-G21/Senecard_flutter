@@ -110,8 +110,9 @@ class MainPage extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: TopBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             icon: viewModel.icon,
             title: title,
             message: message,

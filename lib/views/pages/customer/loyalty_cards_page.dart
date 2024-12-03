@@ -187,6 +187,7 @@ class LoyaltyCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -216,11 +217,11 @@ class LoyaltyCardItem extends StatelessWidget {
                   imageUrl: store.image,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.store, color: Colors.grey),
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                    child: Icon(Icons.store, color: isDark ? Colors.grey[600] : Colors.grey[200]),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
                     child: const Icon(Icons.error),
                   ),
                 ),
@@ -274,7 +275,7 @@ class LoyaltyCardDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
