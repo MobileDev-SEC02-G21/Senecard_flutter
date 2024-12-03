@@ -17,6 +17,7 @@ import '../../elements/login/values/app_strings.dart';
 import 'package:senecard/views/pages/loginpages/Principallogin_screen.dart';
 import 'package:senecard/views/pages/loginpages/choose_screen.dart';
 import 'package:senecard/views/pages/customer/main_page.dart';
+import 'package:senecard/views/pages/loginpages/forgotpass.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -46,6 +47,13 @@ void _navigateToMainPage(BuildContext context) {
   );
 }
 
+void _navigateToForgotPassPage(BuildContext context) {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => ForgotPassPage()),
+  );
+}
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
@@ -68,8 +76,7 @@ class _LoginPageState extends State<LoginPage> {
     final email = emailController.text;
     final password = passwordController.text;
     if (email.isEmpty && password.isEmpty) return;
-    if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.passwordRegex.hasMatch(password)) {
+    if (AppRegex.emailRegex.hasMatch(email) ) {
       fieldValidNotifier.value = true;
     } else {
       fieldValidNotifier.value = false;
@@ -366,7 +373,9 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _navigateToForgotPassPage(context);
+                      },
                       child: const Text(
                         "Did you forget your password?",
                         style: TextStyle(color: Colors.orange),
