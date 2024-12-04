@@ -5,15 +5,15 @@ import 'dart:convert';
 class LoyaltyCardsService {
   static const String LOYALTY_CARDS_CACHE_KEY = 'cached_loyalty_cards';
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   static LoyaltyCardsService? _instance;
   final SharedPreferences _prefs;
-  
+
   LoyaltyCardsService._(this._prefs);
 
   static Future<LoyaltyCardsService> initialize() async {
     if (_instance != null) return _instance!;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       _instance = LoyaltyCardsService._(prefs);
@@ -29,7 +29,6 @@ class LoyaltyCardsService {
       final QuerySnapshot snapshot = await _firestore
           .collection('loyaltyCards')
           .where('uniandesMemberId', isEqualTo: userId)
-          .where('isCurrent', isEqualTo: true)
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -39,7 +38,16 @@ class LoyaltyCardsService {
             'id': doc.id,
             ...data,
           };
+        }).where((card) {
+          final bool? isCurrent = card['isCurrent'];
+          final bool? current = card['current'];
+
+          if (isCurrent != null && current != null) {
+            return isCurrent && current;
+          }
+          return isCurrent == true || current == true;
         }).toList();
+
         await _cacheLoyaltyCards(cards);
         return cards;
       }
@@ -63,7 +71,7 @@ class LoyaltyCardsService {
     try {
       final String? cachedData = _prefs.getString(LOYALTY_CARDS_CACHE_KEY);
       if (cachedData == null || cachedData.isEmpty) return [];
-      
+
       List<dynamic> decoded = jsonDecode(cachedData);
       return decoded.cast<Map<String, dynamic>>();
     } catch (e) {
@@ -76,18 +84,26 @@ class LoyaltyCardsService {
     return _firestore
         .collection('loyaltyCards')
         .where('uniandesMemberId', isEqualTo: userId)
-        .where('isCurrent', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
-          final cards = snapshot.docs.map((doc) {
-            final data = doc.data();
-            return {
-              'id': doc.id,
-              ...data,
-            };
-          }).toList();
-          _cacheLoyaltyCards(cards);
-          return cards;
-        });
+      final cards = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          ...data,
+        };
+      }).where((card) {
+        final bool? isCurrent = card['isCurrent'];
+        final bool? current = card['current'];
+
+        if (isCurrent != null && current != null) {
+          return isCurrent && current;
+        }
+        return isCurrent == true || current == true;
+      }).toList();
+
+      _cacheLoyaltyCards(cards);
+      return cards;
+    });
   }
 }

@@ -30,3 +30,32 @@ class QRAnalyticsService {
     }
   }
 }
+
+class LanguageAnalyticsService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ConnectivityService _connectivityService = ConnectivityService();
+  static const String COLLECTION_NAME = 'AnalyticsBusinessQuestions/sprint4/businessQuestion5';
+
+  Future<void> logLanguageChange({
+    required String userId,
+    required String language,
+  }) async {
+    try {
+      final hasInternet = await _connectivityService.hasInternetConnection();
+      
+      if (!hasInternet) {
+        print('Skipping language analytics logging: No internet connection');
+        return;
+      }
+
+      await _firestore.collection(COLLECTION_NAME).add({
+        'userId': userId,
+        'lan': language,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      print('Successfully logged language change to $language for user: $userId');
+    } catch (e) {
+      print('Error logging language analytics: $e');
+    }
+  }
+}
