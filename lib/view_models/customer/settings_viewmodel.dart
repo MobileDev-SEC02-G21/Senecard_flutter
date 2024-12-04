@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:senecard/services/analytics_service.dart';
 import 'package:senecard/services/notifications_service.dart';
 import 'package:senecard/services/user_preferences_service.dart';
+import 'package:senecard/services/FirebaseAuthService.dart';
 
 class SettingsViewModel extends ChangeNotifier {
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  final LanguageAnalyticsService _languageAnalytics = LanguageAnalyticsService();
   final UserPreferencesService _preferencesService;
   final NotificationsService _notificationsService;
   final String userRole;
@@ -87,6 +91,15 @@ class SettingsViewModel extends ChangeNotifier {
     if (_selectedLanguage == languageCode) return;
     _selectedLanguage = languageCode;
     await _preferencesService.setLanguage(languageCode);
+    
+    // Log language change if user is authenticated
+    if (_authService.currentUserId != null) {
+      await _languageAnalytics.logLanguageChange(
+        userId: _authService.currentUserId!,
+        language: languageCode
+      );
+    }
+    
     _needsRebuild = true;
     notifyListeners();
   }
