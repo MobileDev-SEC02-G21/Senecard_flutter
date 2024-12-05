@@ -22,7 +22,6 @@ class _OwnerPageState extends State<OwnerPage> {
   List<MenuItem> menuItems = [
     MenuItem(title: 'Profile'),
     MenuItem(title: 'My Ads'),
-    MenuItem(title: 'Settings'),
     MenuItem(title: 'Log Out'),
   ];
 
